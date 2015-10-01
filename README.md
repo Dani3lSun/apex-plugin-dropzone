@@ -3,7 +3,7 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ##Changelog
-####1.0 - Initial Release
+####Beta - In development
 
 ##Install
 - Import plugin file "region_type_plugin_de_danielh_dropzone.sql.sql" from source directory into your application

@@ -1,4 +1,4 @@
-#Oracle Apex Region Plugin - Dropzone
+#Oracle APEX Region Plugin - Dropzone
 Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads.
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 

@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.0 (06.01.2015)
+ * Version: 1.1 (07.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -9,14 +9,16 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
                          p_is_printer_friendly IN BOOLEAN)
   RETURN apex_plugin.t_region_render_result IS
   -- plugin attributes
-  l_width           VARCHAR2(50) := p_region.attribute_01;
-  l_height          VARCHAR2(50) := p_region.attribute_02;
-  l_display_message VARCHAR2(500) := p_region.attribute_03;
-  l_max_filesize_mb NUMBER := p_region.attribute_04;
-  l_dz_clickable    VARCHAR2(50) := p_region.attribute_05;
-  l_items_submit    VARCHAR(2000) := p_region.attribute_06;
-  l_plsql           p_region.attribute_07%TYPE := p_region.attribute_07;
-  l_logging         VARCHAR(50) := p_region.attribute_08;
+  l_width                 VARCHAR2(50) := p_region.attribute_01;
+  l_height                VARCHAR2(50) := p_region.attribute_02;
+  l_display_message       VARCHAR2(500) := p_region.attribute_03;
+  l_max_filesize_mb       NUMBER := p_region.attribute_04;
+  l_dz_clickable          VARCHAR2(50) := p_region.attribute_05;
+  l_items_submit          VARCHAR(1000) := p_region.attribute_06;
+  l_plsql                 p_region.attribute_07%TYPE := p_region.attribute_07;
+  l_logging               VARCHAR(50) := p_region.attribute_08;
+  l_remove_uploaded_files VARCHAR(50) := p_region.attribute_09;
+  l_accepted_files        VARCHAR(1000) := p_region.attribute_10;
   -- other variables
   l_region_id           VARCHAR2(200);
   l_width_esc           VARCHAR2(50);
@@ -30,14 +32,16 @@ BEGIN
                                   p_region => p_region);
   END IF;
   -- set variables and defaults
-  l_region_id       := apex_escape.html_attribute(p_region.static_id ||
-                                                  '_dropzone');
-  l_max_filesize_mb := nvl(l_max_filesize_mb,
-                           2);
-  l_dz_clickable    := nvl(l_dz_clickable,
-                           'true');
-  l_logging         := nvl(l_logging,
-                           'false');
+  l_region_id             := apex_escape.html_attribute(p_region.static_id ||
+                                                        '_dropzone');
+  l_max_filesize_mb       := nvl(l_max_filesize_mb,
+                                 2);
+  l_dz_clickable          := nvl(l_dz_clickable,
+                                 'true');
+  l_remove_uploaded_files := nvl(l_remove_uploaded_files,
+                                 'false');
+  l_logging               := nvl(l_logging,
+                                 'false');
   -- escape input
   l_width_esc           := sys.htf.escape_sc(l_width);
   l_height_esc          := sys.htf.escape_sc(l_height);
@@ -47,9 +51,7 @@ BEGIN
   sys.htp.p('<div id="' || l_region_id ||
             '" class="dropzone" style="border:5px solid grey;width:' ||
             l_width_esc || ';height:' || l_height_esc ||
-            ';overflow:auto;">
-<div class="dz-message" data-dz-message><span>' ||
-            l_display_message_esc || '</span></div></div>');
+            ';overflow:auto;"></div>');
   --
   -- add dropzone js and apexdropzone
   apex_javascript.add_library(p_name           => 'dropzone.min',
@@ -76,11 +78,15 @@ BEGIN
                                             apex_javascript.add_attribute('maxFilesize',
                                                                           l_max_filesize_mb) ||
                                             apex_javascript.add_attribute('clickable',
-                                                                          l_dz_clickable,
+                                                                          l_dz_clickable) ||
+                                            apex_javascript.add_attribute('removeAfterUpload',
+                                                                          l_remove_uploaded_files) ||
+                                            apex_javascript.add_attribute('defaultMessage',
+                                                                          l_display_message_esc) ||
+                                            apex_javascript.add_attribute('acceptedFiles',
+                                                                          l_accepted_files,
                                                                           FALSE,
-                                                                          FALSE) ||
-                                           
-                                            '},' ||
+                                                                          FALSE) || '},' ||
                                             apex_javascript.add_value(l_logging,
                                                                       FALSE) || ');');
 

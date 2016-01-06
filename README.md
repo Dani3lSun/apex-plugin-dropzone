@@ -38,13 +38,11 @@ DECLARE
   --
   l_collection_name VARCHAR2(100);
   l_clob            CLOB;
-  l_clob_base64     CLOB;
   l_blob            BLOB;
   l_filename        VARCHAR2(100);
   l_mime_type       VARCHAR2(100);
   --
 BEGIN
-  -- get defaults
   -- x01: file name
   -- x02: mime_type
   -- Column clob001 of CLOB_CONTENT collection: base64 file content
@@ -57,18 +55,10 @@ BEGIN
     FROM apex_collections
    WHERE collection_name = 'CLOB_CONTENT';
   --
-  -- escape special chars (not really required)
-  l_clob_base64 := REPLACE(REPLACE(REPLACE(l_clob,
-                                           chr(10),
-                                           ''),
-                                   chr(13),
-                                   ''),
-                           chr(9),
-                           '');
   -- convert base64 CLOB to BLOB
-  l_blob := apex_web_service.clobbase642blob(p_clob => l_clob_base64);
+  l_blob := apex_web_service.clobbase642blob(p_clob => l_clob);
   --
-  -- create own collection
+  -- create own collection (here starts custom part)
   -- check if exist
   IF NOT
       apex_collection.collection_exists(p_collection_name => l_collection_name) THEN

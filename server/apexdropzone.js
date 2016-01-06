@@ -59,7 +59,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
       p_flow_step_id: $v('pFlowStepId'),
    },
    addRemoveLinks: false,
-   parallelUploads: 2,
+   parallelUploads: 1,
    uploadMultiple: false,
    maxFilesize: vMaxFileSize,
    dictDefaultMessage: vOptions.defaultMessage,

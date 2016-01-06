@@ -3,6 +3,8 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ##Changelog
+####1.1 - added options to limit uploading of declared file types (file endings, mime_types, wildcards) / clear dropzone area after uploading of all files finished
+
 ####1.0 - Initial Release
 
 ####Beta - In development
@@ -18,6 +20,8 @@ The plugin settings are highly customizable and you can change:
 - **Display message** - Enter the text that would be displayed in the Dropzone area.
 - **max. Filesize in MB** - max. file size that is allowed per file. If a file is bigger, it will be removed
 - **Clickable** - If true, the dropzone element itself will be clickable, if false nothing will be clickable
+- **Remove files after upload** - If true, clears all files from Dropzone area if uploading them is finished
+- **Accepted file types** - limit uploading of declared file types (file endings, mime_types, wildcards)
 - **Page Items to submit** - Page Items that should be set into session state.
 - **PLSQL Code** - PLSQL code which saves the files to database tables or collections
 - **Logging** - Whether to log events in the console

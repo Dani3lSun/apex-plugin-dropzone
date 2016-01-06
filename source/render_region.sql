@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.1 (07.01.2015)
+ * Version: 1.2 (07.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -19,11 +19,16 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_logging               VARCHAR(50) := p_region.attribute_08;
   l_remove_uploaded_files VARCHAR(50) := p_region.attribute_09;
   l_accepted_files        VARCHAR(1000) := p_region.attribute_10;
+  l_filetoobig_message    VARCHAR(500) := p_region.attribute_11;
+  l_maxfiles_message      VARCHAR(500) := p_region.attribute_12;
+  l_max_files             NUMBER := p_region.attribute_13;
   -- other variables
-  l_region_id           VARCHAR2(200);
-  l_width_esc           VARCHAR2(50);
-  l_height_esc          VARCHAR2(50);
-  l_display_message_esc VARCHAR2(500);
+  l_region_id              VARCHAR2(200);
+  l_width_esc              VARCHAR2(50);
+  l_height_esc             VARCHAR2(50);
+  l_display_message_esc    VARCHAR2(500);
+  l_filetoobig_message_esc VARCHAR2(500);
+  l_maxfiles_message_esc   VARCHAR2(500);
   --
 BEGIN
   -- Debug
@@ -40,12 +45,18 @@ BEGIN
                                  'true');
   l_remove_uploaded_files := nvl(l_remove_uploaded_files,
                                  'false');
+  l_filetoobig_message    := nvl(l_filetoobig_message,
+                                 'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
+  l_maxfiles_message      := nvl(l_maxfiles_message,
+                                 'You can not upload more than {{maxFiles}} files.');
   l_logging               := nvl(l_logging,
                                  'false');
   -- escape input
-  l_width_esc           := sys.htf.escape_sc(l_width);
-  l_height_esc          := sys.htf.escape_sc(l_height);
-  l_display_message_esc := sys.htf.escape_sc(l_display_message);
+  l_width_esc              := sys.htf.escape_sc(l_width);
+  l_height_esc             := sys.htf.escape_sc(l_height);
+  l_display_message_esc    := sys.htf.escape_sc(l_display_message);
+  l_filetoobig_message_esc := sys.htf.escape_sc(l_filetoobig_message);
+  l_maxfiles_message_esc   := sys.htf.escape_sc(l_maxfiles_message);
   --
   -- add div for dropzone
   sys.htp.p('<div id="' || l_region_id ||
@@ -81,15 +92,20 @@ BEGIN
                                                                           l_dz_clickable) ||
                                             apex_javascript.add_attribute('removeAfterUpload',
                                                                           l_remove_uploaded_files) ||
+                                            apex_javascript.add_attribute('maxFiles',
+                                                                          l_max_files) ||
+                                            apex_javascript.add_attribute('acceptedFiles',
+                                                                          l_accepted_files) ||
                                             apex_javascript.add_attribute('defaultMessage',
                                                                           l_display_message_esc) ||
-                                            apex_javascript.add_attribute('acceptedFiles',
-                                                                          l_accepted_files,
+                                            apex_javascript.add_attribute('fileTooBigMessage',
+                                                                          l_filetoobig_message_esc) ||
+                                            apex_javascript.add_attribute('maxFilesMessage',
+                                                                          l_maxfiles_message_esc,
                                                                           FALSE,
                                                                           FALSE) || '},' ||
                                             apex_javascript.add_value(l_logging,
                                                                       FALSE) || ');');
-
   --
   RETURN NULL;
   --

@@ -33,6 +33,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   var vClickable         = parseBoolean(vOptions.clickable);
   var vMaxFileSize       = parseInt(vOptions.maxFilesize);
   var vRemoveAfterUpload = parseBoolean(vOptions.removeAfterUpload);
+  var vMaxFiles          = parseInt(vOptions.maxFiles);
   // Logging
   if (vlogging) {
     console.log('dropzoneApex: vOptions.ajaxIdentifier:',vOptions.ajaxIdentifier);
@@ -42,10 +43,12 @@ function apexDropzone(pRegionId, pOptions, pLogging){
     console.log('dropzoneApex: vOptions.removeAfterUpload:',vOptions.removeAfterUpload);
     console.log('dropzoneApex: vOptions.defaultMessage:',vOptions.defaultMessage);
     console.log('dropzoneApex: vOptions.acceptedFiles:',vOptions.acceptedFiles);
+    console.log('dropzoneApex: vOptions.maxFiles:',vOptions.maxFiles);
+    console.log('dropzoneApex: vOptions.fileTooBigMessage:',vOptions.fileTooBigMessage);
+    console.log('dropzoneApex: vOptions.maxFilesMessage:',vOptions.maxFilesMessage);
     console.log('dropzoneApex: pRegionId:',pRegionId);
-    console.log('dropzoneApex: pRegionId:',pRegionId);
-    console.log('dropzoneApex: vRegion$:',vRegion$);
     console.log('dropzoneApex: vRegion:',vRegion);
+    console.log('dropzoneApex: vRegion$:',vRegion$);
   }
   // DROPZONE
   Dropzone.autoDiscover = false;
@@ -64,7 +67,10 @@ function apexDropzone(pRegionId, pOptions, pLogging){
    maxFilesize: vMaxFileSize,
    dictDefaultMessage: vOptions.defaultMessage,
    clickable: vClickable,
-   acceptedFiles: vOptions.acceptedFiles
+   maxFiles: vMaxFiles,
+   acceptedFiles: vOptions.acceptedFiles,
+   dictFileTooBig: vOptions.fileTooBigMessage,
+   dictMaxFilesExceeded: vOptions.maxFilesMessage
   });
 
   if (!(vClickable)) {

@@ -25,8 +25,8 @@
       "plugin" : {
         "internalName" : "DE.DANIELH.DROPZONE",
         "type" : "region",
-        "demo" : "https://apex.oracle.com/pls/apex/f?p=57743:11",
-        "previewImage" : "https://raw.githubusercontent.com/Dani3lSun/apex-plugin-dropzone/master/preview.png"
+        "demo" : "https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN",
+        "previewImage" : "https://raw.githubusercontent.com/Dani3lSun/apex-plugin-dropzone/master/preview.gif"
       }
     }
   }

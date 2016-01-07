@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.2 (07.01.2015)
+ * Version: 1.3 (07.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -45,6 +45,8 @@ BEGIN
                                  'true');
   l_remove_uploaded_files := nvl(l_remove_uploaded_files,
                                  'false');
+  l_max_files             := nvl(l_max_files,
+                                 256);
   l_filetoobig_message    := nvl(l_filetoobig_message,
                                  'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
   l_maxfiles_message      := nvl(l_maxfiles_message,

@@ -36,7 +36,7 @@ wwv_flow_api.create_plugin(
 ,p_plsql_code=>wwv_flow_utilities.join(wwv_flow_t_varchar2(
 '/*-------------------------------------',
 ' * Dropzone Apex Plugin',
-' * Version: 1.2 (07.01.2015)',
+' * Version: 1.3 (07.01.2015)',
 ' * Author:  Daniel Hochleitner',
 ' *-------------------------------------',
 '*/',
@@ -81,6 +81,8 @@ wwv_flow_api.create_plugin(
 '                                 ''true'');',
 '  l_remove_uploaded_files := nvl(l_remove_uploaded_files,',
 '                                 ''false'');',
+'  l_max_files             := nvl(l_max_files,',
+'                                 256);',
 '  l_filetoobig_message    := nvl(l_filetoobig_message,',
 '                                 ''File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.'');',
 '  l_maxfiles_message      := nvl(l_maxfiles_message,',
@@ -172,7 +174,7 @@ wwv_flow_api.create_plugin(
 ,p_substitute_attributes=>false
 ,p_subscribe_plugin_settings=>true
 ,p_help_text=>'Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads. It is based on JS Framework dropzone.js.'
-,p_version_identifier=>'1.2'
+,p_version_identifier=>'1.3'
 ,p_about_url=>'https://github.com/Dani3lSun/apex-plugin-dropzone'
 ,p_files_version=>315
 );

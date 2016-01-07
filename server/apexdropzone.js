@@ -37,6 +37,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   var vMaxFileSize       = parseInt(vOptions.maxFilesize);
   var vRemoveAfterUpload = parseBoolean(vOptions.removeAfterUpload);
   var vMaxFiles          = parseInt(vOptions.maxFiles);
+  var vCopyPaste         = parseBoolean(vOptions.supportCopyPaste);
   // Logging
   if (vlogging) {
     console.log('dropzoneApex: vOptions.ajaxIdentifier:',vOptions.ajaxIdentifier);
@@ -48,6 +49,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
     console.log('dropzoneApex: vOptions.acceptedFiles:',vOptions.acceptedFiles);
     console.log('dropzoneApex: vOptions.maxFiles:',vOptions.maxFiles);
     console.log('dropzoneApex: vOptions.refreshRegionID:',vOptions.refreshRegionID);
+    console.log('dropzoneApex: vOptions.supportCopyPaste:',vOptions.supportCopyPaste);
     console.log('dropzoneApex: vOptions.fileTooBigMessage:',vOptions.fileTooBigMessage);
     console.log('dropzoneApex: vOptions.maxFilesMessage:',vOptions.maxFilesMessage);
     console.log('dropzoneApex: pRegionId:',pRegionId);
@@ -80,7 +82,20 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   if (!(vClickable)) {
     $('.dz-hidden-input').prop('disabled',true);
   }
-  
+  // Copy&Paste support
+  if (vCopyPaste) {
+    FileReaderJS.setupClipboard(document.body, {
+        readAsDefault: "DataURL",
+        accept: {
+          'image/*': 'DataURL'
+        },
+        on: {
+            load: function(e, file) {
+                myDropzone.addFile(file);
+            }
+        }
+    })  
+  }
   // send file as base64
   myDropzone.on('sending',function(file) {
     var reader = new FileReader();
@@ -106,7 +121,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
       })(file);
       reader.readAsArrayBuffer(file)
   });
-  
+  // After complete: clear data / refresh region
   myDropzone.on("complete", function() {
     // remove all files after upload is complete
     if (vRemoveAfterUpload) {

@@ -23,6 +23,7 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_maxfiles_message      VARCHAR(500) := p_region.attribute_12;
   l_max_files             NUMBER := p_region.attribute_13;
   l_refresh_regionid      VARCHAR(100) := p_region.attribute_14;
+  l_copy_paste_support    VARCHAR(50) := p_region.attribute_15;
   -- other variables
   l_region_id              VARCHAR2(200);
   l_width_esc              VARCHAR2(50);
@@ -49,6 +50,8 @@ BEGIN
                                  'false');
   l_max_files             := nvl(l_max_files,
                                  256);
+  l_copy_paste_support    := nvl(l_copy_paste_support,
+                                 'false');
   l_filetoobig_message    := nvl(l_filetoobig_message,
                                  'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
   l_maxfiles_message      := nvl(l_maxfiles_message,
@@ -79,6 +82,13 @@ BEGIN
                               p_directory      => p_plugin.file_prefix,
                               p_version        => NULL,
                               p_skip_extension => FALSE);
+  -- filereader for Copy&Paste support
+  IF l_copy_paste_support = 'true' THEN
+    apex_javascript.add_library(p_name           => 'filereader',
+                                p_directory      => p_plugin.file_prefix,
+                                p_version        => NULL,
+                                p_skip_extension => FALSE);
+  END IF;
   --
   -- add dropzone css
   apex_css.add_file(p_name      => 'dropzone.min',
@@ -103,6 +113,8 @@ BEGIN
                                                                           l_accepted_files) ||
                                             apex_javascript.add_attribute('refreshRegionID',
                                                                           l_refresh_regionid_esc) ||
+                                            apex_javascript.add_attribute('supportCopyPaste',
+                                                                          l_copy_paste_support) ||
                                             apex_javascript.add_attribute('defaultMessage',
                                                                           l_display_message_esc) ||
                                             apex_javascript.add_attribute('fileTooBigMessage',

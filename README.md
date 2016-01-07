@@ -3,6 +3,8 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ##Changelog
+####1.4 - added option to refresh a chosen region (with REGION_STATIC_ID) after uploading of all files is complete / Copy&Paste support of images in modern Browsers (like Chrome)
+
 ####1.3 - set default for "max Files" to dropzone default of 256
 
 ####1.2 - added max files per upload option / added customizable messages for better multilingual support
@@ -27,13 +29,15 @@ The plugin settings are highly customizable and you can change:
 - **Remove files after upload** - If true, clears all files from Dropzone area if uploading them is finished
 - **max Files** - Maximum number of allowed files that can be uploaded at once
 - **Accepted file types** - limit uploading of declared file types (file endings, mime_types, wildcards)
+- **Refresh Region after upload (REGION_STATIC_ID)** - Region Static ID of the region which should be refreshed after uploading of all files is complete
+- **Image copy&paste support** - Adds support for Copy&Paste of images in modern Browsers (like Chrome)
 - **File too big message** - Message that is shown when a file is too big
 - **Max files exceeded message** - If max Files is set, this will be the error message when it's exceeded
 - **Page Items to submit** - Page Items that should be set into session state.
 - **PLSQL Code** - PLSQL code which saves the files to database tables or collections
 - **Logging** - Whether to log events in the console
 
-## How to use
+##How to use
 - Create a Dropzone region on target page
 - Choose best fitting plugin attributes (help included)
 
@@ -100,4 +104,7 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ##Preview
 ![](https://github.com/Dani3lSun/apex-plugin-dropzone/blob/master/preview.gif)
+
+####Preview Copy&Paste
+![](https://github.com/Dani3lSun/apex-plugin-dropzone/blob/master/preview_copy_paste.gif)
 ---

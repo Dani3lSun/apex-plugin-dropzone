@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.3 (07.01.2015)
+ * Version: 1.4 (08.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -22,6 +22,7 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_filetoobig_message    VARCHAR(500) := p_region.attribute_11;
   l_maxfiles_message      VARCHAR(500) := p_region.attribute_12;
   l_max_files             NUMBER := p_region.attribute_13;
+  l_refresh_regionid      VARCHAR(100) := p_region.attribute_14;
   -- other variables
   l_region_id              VARCHAR2(200);
   l_width_esc              VARCHAR2(50);
@@ -29,6 +30,7 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_display_message_esc    VARCHAR2(500);
   l_filetoobig_message_esc VARCHAR2(500);
   l_maxfiles_message_esc   VARCHAR2(500);
+  l_refresh_regionid_esc   VARCHAR(100);
   --
 BEGIN
   -- Debug
@@ -59,6 +61,7 @@ BEGIN
   l_display_message_esc    := sys.htf.escape_sc(l_display_message);
   l_filetoobig_message_esc := sys.htf.escape_sc(l_filetoobig_message);
   l_maxfiles_message_esc   := sys.htf.escape_sc(l_maxfiles_message);
+  l_refresh_regionid_esc   := sys.htf.escape_sc(l_refresh_regionid);
   --
   -- add div for dropzone
   sys.htp.p('<div id="' || l_region_id ||
@@ -98,6 +101,8 @@ BEGIN
                                                                           l_max_files) ||
                                             apex_javascript.add_attribute('acceptedFiles',
                                                                           l_accepted_files) ||
+                                            apex_javascript.add_attribute('refreshRegionID',
+                                                                          l_refresh_regionid_esc) ||
                                             apex_javascript.add_attribute('defaultMessage',
                                                                           l_display_message_esc) ||
                                             apex_javascript.add_attribute('fileTooBigMessage',

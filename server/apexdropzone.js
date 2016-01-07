@@ -1,3 +1,6 @@
+// APEX Dropzone functions
+// Author: Daniel Hochleitner
+// Version: 1.4
 function parseBoolean(pString) {
   var pBoolean;
   if (pString.toLowerCase() == 'true') {
@@ -44,6 +47,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
     console.log('dropzoneApex: vOptions.defaultMessage:',vOptions.defaultMessage);
     console.log('dropzoneApex: vOptions.acceptedFiles:',vOptions.acceptedFiles);
     console.log('dropzoneApex: vOptions.maxFiles:',vOptions.maxFiles);
+    console.log('dropzoneApex: vOptions.refreshRegionID:',vOptions.refreshRegionID);
     console.log('dropzoneApex: vOptions.fileTooBigMessage:',vOptions.fileTooBigMessage);
     console.log('dropzoneApex: vOptions.maxFilesMessage:',vOptions.maxFilesMessage);
     console.log('dropzoneApex: pRegionId:',pRegionId);
@@ -102,15 +106,24 @@ function apexDropzone(pRegionId, pOptions, pLogging){
       })(file);
       reader.readAsArrayBuffer(file)
   });
-  // remove all files after upload is complete
-  if (vRemoveAfterUpload) {
-    myDropzone.on("complete", function() {
-     if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
-       // wait 4 secs
-       setTimeout(function() {
-         myDropzone.removeAllFiles();
-       }, 4000);
-     }
-    });
-  }
+  
+  myDropzone.on("complete", function() {
+    // remove all files after upload is complete
+    if (vRemoveAfterUpload) {
+      if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
+        // wait 3 secs
+        setTimeout(function() {
+          myDropzone.removeAllFiles();
+        }, 3000);
+      }
+    }
+    if (vOptions.refreshRegionID) {
+      if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
+        // wait 3 secs
+        setTimeout(function() {
+          apex.event.trigger('#' + vOptions.refreshRegionID, 'apexrefresh');;
+        }, 3000);
+      }
+    }
+  });
 }

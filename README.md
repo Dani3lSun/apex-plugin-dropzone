@@ -3,6 +3,8 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ##Changelog
+####1.5 - performance improvements(removed redundant AJAX call) / split the clob into a 30k param array (OHS 32k limit for params) / added callback function to apex.server.plugin that processes the files queue
+
 ####1.4 - added option to refresh a chosen region (with REGION_STATIC_ID) after uploading of all files is complete / Copy&Paste support of images in modern Browsers (like Chrome)
 
 ####1.3 - set default for "max Files" to dropzone default of 256
@@ -31,6 +33,7 @@ The plugin settings are highly customizable and you can change:
 - **Accepted file types** - limit uploading of declared file types (file endings, mime_types, wildcards)
 - **Refresh Region after upload (REGION_STATIC_ID)** - Region Static ID of the region which should be refreshed after uploading of all files is complete
 - **Image copy&paste support** - Adds support for Copy&Paste of images in modern Browsers (like Chrome)
+- **Wait in milliseconds** - Wait time between uploaded files in milliseconds
 - **File too big message** - Message that is shown when a file is too big
 - **Max files exceeded message** - If max Files is set, this will be the error message when it's exceeded
 - **Page Items to submit** - Page Items that should be set into session state.
@@ -50,27 +53,35 @@ DECLARE
   l_collection_name VARCHAR2(100);
   l_clob            CLOB;
   l_blob            BLOB;
-  l_filename        VARCHAR2(100);
+  l_filename        VARCHAR2(200);
   l_mime_type       VARCHAR2(100);
+  l_token           VARCHAR2(32000);
   --
 BEGIN
-  -- x01: file name
-  -- x02: mime_type
-  -- Column clob001 of CLOB_CONTENT collection: base64 file content
-  l_collection_name := 'DROPZONE_UPLOAD';
-  l_filename        := apex_application.g_x01;
-  l_mime_type       := apex_application.g_x02;
-  -- get CLOB from APEX special collection
-  SELECT clob001
-    INTO l_clob
-    FROM apex_collections
-   WHERE collection_name = 'CLOB_CONTENT';
-  --
+  -- get defaults from AJAX Process
+  l_filename  := apex_application.g_x01;
+  l_mime_type := apex_application.g_x02;
+  -- build CLOB from f01 30k Array
+  dbms_lob.createtemporary(l_clob,
+                           FALSE,
+                           dbms_lob.session);
+
+  FOR i IN 1 .. apex_application.g_f01.count LOOP
+    l_token := wwv_flow.g_f01(i);
+  
+    IF length(l_token) > 0 THEN
+      dbms_lob.writeappend(l_clob,
+                           length(l_token),
+                           l_token);
+    END IF;
+  END LOOP;
   -- convert base64 CLOB to BLOB
   l_blob := apex_web_service.clobbase642blob(p_clob => l_clob);
   --
-  -- create own collection (here starts custom part)
-  -- check if exist
+  -- create own collection (here starts custom part (for example a Insert statement))
+  -- collection name
+  l_collection_name := 'DROPZONE_UPLOAD';
+  -- check if collection exist
   IF NOT
       apex_collection.collection_exists(p_collection_name => l_collection_name) THEN
     apex_collection.create_collection(l_collection_name);

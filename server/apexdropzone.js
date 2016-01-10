@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 1.6
+// Version: 1.7
 
 var gRun = 'Y';
 // parse string to boolean
@@ -34,35 +34,6 @@ function binaryArray2base64(int8Array){
         data += String.fromCharCode(bytes[i]);
     }
     return btoa(data);
-}
-// Apex AJAX call to upload file
-function apexAjaxCall(pAjaxIdentifier,pFile,pPageItems,callback) {
-    apex.server.plugin(pAjaxIdentifier, {
-                                  x01: pFile.name,
-                                  x02: pFile.type,
-                                  f01: pFile.f01Array,
-                                  pageItems: pPageItems
-                                  },{
-                                    dataType: 'html',
-                                    success:function() {
-                                        pFile.status = Dropzone.SUCCESS;
-                                        callback();
-                                        },
-                                    error:function() {
-                                        pFile.status = Dropzone.ERROR;
-                                        var node, _i, _len, _ref, _results;
-                                        // add error template to file
-                                        var message = 'Error processing file.';
-                                        pFile.previewElement.classList.add("dz-error");
-                                        _ref = pFile.previewElement.querySelectorAll("[data-dz-errormessage]");
-                                        _results = [];
-                                        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                                          node = _ref[_i];
-                                          _results.push(node.textContent = message);
-                                        }
-                                        callback();
-                                        }
-                                  });
 }
 // sleep function (hack to ensure server gets right file (lot of small files))
 function sleep_until(pMillseconds) {
@@ -106,6 +77,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   // DROPZONE
   Dropzone.autoDiscover = false;
   var myDropzone = new Dropzone('div#' + vRegion,
+    // NOT USED: required params, but uploading function uses plugin process
     {
       paramName: "p_clob_01",
       url: "wwv_flow.show",
@@ -114,6 +86,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
         p_flow_id: $v('pFlowId'),
         p_flow_step_id: $v('pFlowStepId')
       },
+   // dropzone parameters
    addRemoveLinks: false,
    parallelUploads: vParallelUploads,
    uploadMultiple: false,
@@ -139,57 +112,97 @@ function apexDropzone(pRegionId, pOptions, pLogging){
         },
         on: {
             load: function(e, file) {
-                gRun = 'Y';
+                // add file and process queue when pasting
                 myDropzone.addFile(file);
+                // only if nothing is uploading
+                if (myDropzone.getUploadingFiles().length == 0) {
+                  myDropzone.processQueue();
+                }
             }
         }
     })  
   }
-  // build base64 and attach to f01 array
+  // addedfile: process queue first file
   myDropzone.on("addedfile",function(file) {
-    // build base64 and attach to f01 array
-    var reader = new FileReader();
-    reader.onload = (function(pfile) {
-    return function(e) {
-      if (pfile) {
-        // BinaryInt8Array to base64
-        var base64 = binaryArray2base64(e.target.result);
-        // split base64 clob string to f01 array length 30k
-        var f01Array = [];
-        f01Array = clob2Array(base64,30000,f01Array);
-        file.f01Array = f01Array;
-        if (gRun == 'Y') {
-          myDropzone.processQueue();
-        }
-      }
+    if (gRun == 'Y') {
+      myDropzone.processQueue();
     }
-    })(file);
-    reader.readAsArrayBuffer(file);
   });
-  // processing with sleep
+  // processing: set gRun to N after first file
   myDropzone.on("processing",function(file) {
     gRun = 'N';
-    // sleep (hack)
-    sleep_until(vWaitTime);
   });
-  // send file as base64 f01 array
-  myDropzone.on("sending",function(file) {
-    file.status = Dropzone.UPLOADING;
-    // AJAX call apex.server.plugin and process file queue if success
-    apexAjaxCall(vOptions.ajaxIdentifier,file,vOptions.pageItems,function() {
-                                                                   // process file queue
-                                                                   if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
-                                                                   myDropzone.processQueue();
-                                                                   // check again
-                                                                   } else {
-                                                                     setTimeout(function() {
-                                                                       if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
-                                                                         myDropzone.processQueue();
-                                                                       }
-                                                                     }, 200);
-                                                                   }
-                                                                 });
-  });
+  // overwrite dropzone default upload function
+  myDropzone.uploadFiles = function(files) {
+    // go through files
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      //set upload progress 10%
+      myDropzone.emit('uploadprogress', file, 10, file.size / 10);
+      // Filereader => file to Binary to base64
+      var reader = new FileReader();
+      reader.onload = (function(pfile) {
+        return function(e) {
+          if (pfile) {
+            // BinaryInt8Array to base64
+            var base64 = binaryArray2base64(e.target.result);
+            //set upload progress 25%
+            myDropzone.emit('uploadprogress', file, 25, file.size / 4);
+            // split base64 clob string to f01 array length 30k
+            var f01Array = [];
+            f01Array = clob2Array(base64,30000,f01Array);
+            //set upload progress 50%
+            myDropzone.emit('uploadprogress', file, 50, file.size / 2);
+            // AJAX call apex.server.plugin and process file queue if success
+            apex.server.plugin(vOptions.ajaxIdentifier, {
+                                  x01: file.name,
+                                  x02: file.type,
+                                  f01: f01Array,
+                                  pageItems: vOptions.pageItems
+                                  },{
+                                    dataType: 'html',
+                                    // SUCESS function
+                                    success:function() {
+                                        //sleep hack for large number of small files
+                                        sleep_until(vWaitTime);
+                                        // set file status SUCCESS / UPLOAD 100%
+                                        myDropzone.emit('uploadprogress', file, 100, file.size);
+                                        file.status = Dropzone.SUCCESS;
+                                        myDropzone.emit("success", file, 'success', null);
+                                        myDropzone.emit("complete", file);
+                                        // process file queue
+                                        myDropzone.processQueue();
+                                        },
+                                    // ERROR function
+                                    error:function(xhr,pMessage) {
+                                        //sleep hack for large number of small files
+                                        sleep_until(vWaitTime);
+                                        // set file status ERROR
+                                        file.status = Dropzone.ERROR;
+                                        // build message for error template
+                                        var message = "";
+                                        if (pMessage == null || pMessage == undefined) {
+                                          message = 'Error processing file.';
+                                        } else {
+                                          message = pMessage;
+                                        }
+                                        myDropzone.emit("error", file, message, xhr);
+                                        myDropzone.emit("complete", file);
+                                        // process file queue
+                                        myDropzone.processQueue();
+                                        }
+                                });
+          // if file not found: process queue
+          } else {
+            //sleep hack for large number of small files
+            sleep_until(vWaitTime);
+            myDropzone.processQueue();
+          }
+        }
+     })(file);
+     reader.readAsArrayBuffer(file);  
+    }
+  }
   // After complete: clear data / refresh region
   myDropzone.on("complete", function() {
     // remove all files after upload is complete
@@ -201,6 +214,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
         }, 3000);
       }
     }
+    // refresh region after upload is complete
     if (vOptions.refreshRegionID) {
       if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
         // wait 3 secs

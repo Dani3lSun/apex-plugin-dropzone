@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 1.5
+// Version: 1.6
 
 var gRun = 'Y';
 // parse string to boolean
@@ -35,7 +35,21 @@ function binaryArray2base64(int8Array){
     }
     return btoa(data);
 }
-// sleep function (dirty hack to ensure server gets right file)
+// Apex AJAX call to upload file
+function apexAjaxCall(pAjaxIdentifier,pFilename,pFiletype,pf01Array,pPageItems,callback) {
+    apex.server.plugin(pAjaxIdentifier, {
+                                  x01: pFilename,
+                                  x02: pFiletype,
+                                  f01: pf01Array,
+                                  pageItems: pPageItems
+                                  },{
+                                    dataType: 'html',
+                                    success:function() {
+                                        callback();
+                                        }
+                                  });
+}
+// sleep function (hack to ensure server gets right file (lot of small files))
 function sleep_until(pMillseconds) {
    var vMaxSec = new Date().getTime();
      while (new Date() < vMaxSec + pMillseconds) {}
@@ -53,8 +67,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   var vMaxFiles          = parseInt(vOptions.maxFiles);
   var vCopyPaste         = parseBoolean(vOptions.supportCopyPaste);
   var vWaitTime          = parseInt(vOptions.waitTime);
-  //gWaitTime              = vWaitTime;
-  
+  var vParallelUploads   = parseInt(vOptions.parallelUploads);
   // Logging
   if (vlogging) {
     console.log('dropzoneApex: vOptions.ajaxIdentifier:',vOptions.ajaxIdentifier);
@@ -65,6 +78,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
     console.log('dropzoneApex: vOptions.defaultMessage:',vOptions.defaultMessage);
     console.log('dropzoneApex: vOptions.acceptedFiles:',vOptions.acceptedFiles);
     console.log('dropzoneApex: vOptions.maxFiles:',vOptions.maxFiles);
+    console.log('dropzoneApex: vOptions.parallelUploads:',vOptions.parallelUploads);
     console.log('dropzoneApex: vOptions.refreshRegionID:',vOptions.refreshRegionID);
     console.log('dropzoneApex: vOptions.supportCopyPaste:',vOptions.supportCopyPaste);
     console.log('dropzoneApex: vOptions.waitTime:',vOptions.waitTime);
@@ -86,7 +100,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
         p_flow_step_id: $v('pFlowStepId')
       },
    addRemoveLinks: false,
-   parallelUploads: 1,
+   parallelUploads: vParallelUploads,
    uploadMultiple: false,
    autoProcessQueue: false,
    maxFilesize: vMaxFileSize,
@@ -97,7 +111,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
    dictFileTooBig: vOptions.fileTooBigMessage,
    dictMaxFilesExceeded: vOptions.maxFilesMessage
   });
-
+  // disable clickable element
   if (!(vClickable)) {
     $('.dz-hidden-input').prop('disabled',true);
   }
@@ -110,66 +124,58 @@ function apexDropzone(pRegionId, pOptions, pLogging){
         },
         on: {
             load: function(e, file) {
+                gRun = 'Y';
                 myDropzone.addFile(file);
-                if (myDropzone.getUploadingFiles().length == 0) {
-                  myDropzone.processQueue();
-                }
             }
         }
     })  
   }
-  // add file: processQueue for first file
-  myDropzone.on("addedfile", function(file) {
-    if (gRun == 'Y') {
-      myDropzone.processQueue();
+  // build base64 and attach to f01 array
+  myDropzone.on("addedfile",function(file) {
+    // build base64 and attach to f01 array
+    var reader = new FileReader();
+    reader.onload = (function(pfile) {
+    return function(e) {
+      if (pfile) {
+        // BinaryInt8Array to base64
+        var base64 = binaryArray2base64(e.target.result);
+        // split base64 clob string to f01 array length 30k
+        var f01Array = [];
+        f01Array = clob2Array(base64,30000,f01Array);
+        file.f01Array = f01Array;
+        if (gRun == 'Y') {
+          myDropzone.processQueue();
+        }
+      }
     }
+    })(file);
+    reader.readAsArrayBuffer(file);
   });
   // processing with sleep
   myDropzone.on("processing",function(file) {
     gRun = 'N';
-    // sleep (dirty hack)
+    // sleep (hack)
     sleep_until(vWaitTime);
   });
-  // send file as base64
+  // send file as base64 f01 array
   myDropzone.on("sending",function(file) {
     file.status = Dropzone.UPLOADING;
-    var reader = new FileReader();
-    reader.onload = (function(pfile) {
-      return function(e) {
-        if (pfile) {
-          // BinaryInt8Array to base64
-          var base64 = binaryArray2base64(e.target.result);
-          // split base64 clob string to f01 array length 30k
-          var f01Array = [];
-          f01Array = clob2Array(base64,30000,f01Array);
-          // AJAX call apex.server.plugin only
-          apex.server.plugin(vOptions.ajaxIdentifier, {
-                              x01: pfile.name,
-                              x02: pfile.type,
-                              f01: f01Array,
-                              pageItems: vOptions.pageItems
-                              },{
-                                dataType: 'html',
-                                success:function() {
-                                    // process file queue
-                                    file.status = Dropzone.SUCCESS;
-                                    if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
-                                      myDropzone.processQueue();
-                                      // check again
-                                    } else
-                                      setTimeout(function() {
-                                        if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
-                                          myDropzone.processQueue();
-                                        }
-                                      }, 200);
-                                }
-                               });
-        }
-      }
-    })(file);
-    reader.readAsArrayBuffer(file);
+    // AJAX call apex.server.plugin and process file queue if success
+    apexAjaxCall(vOptions.ajaxIdentifier,file.name,file.type,file.f01Array,vOptions.pageItems,function() {
+                                                                                                file.status = Dropzone.SUCCESS;
+                                                                                                // process file queue
+                                                                                                if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
+                                                                                                  myDropzone.processQueue();
+                                                                                                // check again
+                                                                                                } else {
+                                                                                                  setTimeout(function() {
+                                                                                                    if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
+                                                                                                      myDropzone.processQueue();
+                                                                                                    }
+                                                                                                  }, 200);
+                                                                                                }
+                                                                                              });
   });
-  
   // After complete: clear data / refresh region
   myDropzone.on("complete", function() {
     // remove all files after upload is complete

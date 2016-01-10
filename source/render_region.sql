@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.5 (09.01.2015)
+ * Version: 1.6 (10.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -25,6 +25,7 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_refresh_regionid      VARCHAR(100) := p_region.attribute_14;
   l_copy_paste_support    VARCHAR(50) := p_region.attribute_15;
   l_wait_time_ms          NUMBER := p_region.attribute_16;
+  l_parallel_uploads      NUMBER := p_region.attribute_17;
   -- other variables
   l_region_id              VARCHAR2(200);
   l_width_esc              VARCHAR2(50);
@@ -55,12 +56,19 @@ BEGIN
                                  'false');
   l_wait_time_ms          := nvl(l_wait_time_ms,
                                  600);
-  l_filetoobig_message    := nvl(l_filetoobig_message,
-                                 'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
-  l_maxfiles_message      := nvl(l_maxfiles_message,
-                                 'You can not upload more than {{maxFiles}} files.');
-  l_logging               := nvl(l_logging,
-                                 'false');
+  l_parallel_uploads      := nvl(l_parallel_uploads,
+                                 1);
+  IF l_parallel_uploads > 2 THEN
+    l_parallel_uploads := 2;
+  ELSIF l_parallel_uploads = 0 THEN
+    l_parallel_uploads := 1;
+  END IF;
+  l_filetoobig_message := nvl(l_filetoobig_message,
+                              'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
+  l_maxfiles_message   := nvl(l_maxfiles_message,
+                              'You can not upload more than {{maxFiles}} files.');
+  l_logging            := nvl(l_logging,
+                              'false');
   -- escape input
   l_width_esc              := sys.htf.escape_sc(l_width);
   l_height_esc             := sys.htf.escape_sc(l_height);
@@ -120,6 +128,8 @@ BEGIN
                                                                           l_copy_paste_support) ||
                                             apex_javascript.add_attribute('waitTime',
                                                                           l_wait_time_ms) ||
+                                            apex_javascript.add_attribute('parallelUploads',
+                                                                          l_parallel_uploads) ||
                                             apex_javascript.add_attribute('defaultMessage',
                                                                           l_display_message_esc) ||
                                             apex_javascript.add_attribute('fileTooBigMessage',

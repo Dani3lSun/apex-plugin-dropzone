@@ -32,6 +32,7 @@ The plugin settings are highly customizable and you can change:
 - **Clickable** - If true, the dropzone element itself will be clickable, if false nothing will be clickable
 - **Remove files after upload** - If true, clears all files from Dropzone area if uploading them is finished
 - **max Files** - Maximum number of allowed files that can be uploaded at once
+- **Parallel Uploads** - Number of parallel upload streams to the server (1 or 2 concurrent)
 - **Accepted file types** - limit uploading of declared file types (file endings, mime_types, wildcards)
 - **Refresh Region after upload (REGION_STATIC_ID)** - Region Static ID of the region which should be refreshed after uploading of all files is complete
 - **Image copy&paste support** - Adds support for Copy&Paste of images in modern Browsers (like Chrome)

@@ -36,15 +36,30 @@ function binaryArray2base64(int8Array){
     return btoa(data);
 }
 // Apex AJAX call to upload file
-function apexAjaxCall(pAjaxIdentifier,pFilename,pFiletype,pf01Array,pPageItems,callback) {
+function apexAjaxCall(pAjaxIdentifier,pFile,pPageItems,callback) {
     apex.server.plugin(pAjaxIdentifier, {
-                                  x01: pFilename,
-                                  x02: pFiletype,
-                                  f01: pf01Array,
+                                  x01: pFile.name,
+                                  x02: pFile.type,
+                                  f01: pFile.f01Array,
                                   pageItems: pPageItems
                                   },{
                                     dataType: 'html',
                                     success:function() {
+                                        pFile.status = Dropzone.SUCCESS;
+                                        callback();
+                                        },
+                                    error:function() {
+                                        pFile.status = Dropzone.ERROR;
+                                        var node, _i, _len, _ref, _results;
+                                        // add error template to file
+                                        var message = 'Error processing file.';
+                                        pFile.previewElement.classList.add("dz-error");
+                                        _ref = pFile.previewElement.querySelectorAll("[data-dz-errormessage]");
+                                        _results = [];
+                                        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                                          node = _ref[_i];
+                                          _results.push(node.textContent = message);
+                                        }
                                         callback();
                                         }
                                   });
@@ -161,20 +176,19 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   myDropzone.on("sending",function(file) {
     file.status = Dropzone.UPLOADING;
     // AJAX call apex.server.plugin and process file queue if success
-    apexAjaxCall(vOptions.ajaxIdentifier,file.name,file.type,file.f01Array,vOptions.pageItems,function() {
-                                                                                                file.status = Dropzone.SUCCESS;
-                                                                                                // process file queue
-                                                                                                if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
-                                                                                                  myDropzone.processQueue();
-                                                                                                // check again
-                                                                                                } else {
-                                                                                                  setTimeout(function() {
-                                                                                                    if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
-                                                                                                      myDropzone.processQueue();
-                                                                                                    }
-                                                                                                  }, 200);
-                                                                                                }
-                                                                                              });
+    apexAjaxCall(vOptions.ajaxIdentifier,file,vOptions.pageItems,function() {
+                                                                   // process file queue
+                                                                   if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
+                                                                   myDropzone.processQueue();
+                                                                   // check again
+                                                                   } else {
+                                                                     setTimeout(function() {
+                                                                       if (myDropzone.getQueuedFiles().length > 0 && myDropzone.getUploadingFiles().length == 0) {
+                                                                         myDropzone.processQueue();
+                                                                       }
+                                                                     }, 200);
+                                                                   }
+                                                                 });
   });
   // After complete: clear data / refresh region
   myDropzone.on("complete", function() {

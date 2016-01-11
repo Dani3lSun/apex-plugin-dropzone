@@ -29,6 +29,7 @@ It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ##Plugin Settings
 The plugin settings are highly customizable and you can change:
+- **Dropzone Style** - Default style of Dropzone area (grey border / blue dashed border)
 - **Width** - default width of Dropzone area. Valid values are px and % data
 - **Height** - default height of Dropzone area. Valid values are px and % data
 - **Display message** - Enter the text that would be displayed in the Dropzone area.
@@ -37,6 +38,7 @@ The plugin settings are highly customizable and you can change:
 - **Remove files after upload** - If true, clears all files from Dropzone area if uploading them is finished
 - **max Files** - Maximum number of allowed files that can be uploaded at once
 - **Parallel Uploads** - Number of parallel upload streams to the server (1 or 2 concurrent)
+- **Show common file previews** - Show preview images for common file types when adding files
 - **Accepted file types** - limit uploading of declared file types (file endings, mime_types, wildcards)
 - **Refresh Region after upload (REGION_STATIC_ID)** - Region Static ID of the region which should be refreshed after uploading of all files is complete
 - **Image copy&paste support** - Adds support for Copy&Paste of images in modern Browsers (like Chrome)

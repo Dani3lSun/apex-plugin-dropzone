@@ -36,12 +36,27 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_filetoobig_message_esc VARCHAR2(500);
   l_maxfiles_message_esc   VARCHAR2(500);
   l_refresh_regionid_esc   VARCHAR(100);
+  -- js/css file vars
+  l_apexdropzone_js VARCHAR2(50);
+  l_dropzone_js     VARCHAR2(50);
+  l_dropzone_css    VARCHAR2(50);
+  l_filereader_js   VARCHAR2(50);
   --
 BEGIN
   -- Debug
   IF apex_application.g_debug THEN
     apex_plugin_util.debug_region(p_plugin => p_plugin,
                                   p_region => p_region);
+    -- set js/css filenames
+    l_apexdropzone_js := 'apexdropzone';
+    l_dropzone_js     := 'dropzone';
+    l_dropzone_css    := 'dropzone';
+    l_filereader_js   := 'filereader';
+  ELSE
+    l_apexdropzone_js := 'apexdropzone.min';
+    l_dropzone_js     := 'dropzone.min';
+    l_dropzone_css    := 'dropzone.min';
+    l_filereader_js   := 'filereader.min';
   END IF;
   -- set variables and defaults
   l_region_id             := apex_escape.html_attribute(p_region.static_id ||
@@ -99,25 +114,25 @@ BEGIN
   END IF;
   --
   -- add dropzone js and apexdropzone
-  apex_javascript.add_library(p_name           => 'dropzone.min',
+  apex_javascript.add_library(p_name           => l_dropzone_js,
                               p_directory      => p_plugin.file_prefix,
                               p_version        => NULL,
                               p_skip_extension => FALSE);
   --
-  apex_javascript.add_library(p_name           => 'apexdropzone',
+  apex_javascript.add_library(p_name           => l_apexdropzone_js,
                               p_directory      => p_plugin.file_prefix,
                               p_version        => NULL,
                               p_skip_extension => FALSE);
   -- filereader for Copy&Paste support
   IF l_copy_paste_support = 'true' THEN
-    apex_javascript.add_library(p_name           => 'filereader',
+    apex_javascript.add_library(p_name           => l_filereader_js,
                                 p_directory      => p_plugin.file_prefix,
                                 p_version        => NULL,
                                 p_skip_extension => FALSE);
   END IF;
   --
   -- add dropzone css
-  apex_css.add_file(p_name      => 'dropzone.min',
+  apex_css.add_file(p_name      => l_dropzone_css,
                     p_directory => p_plugin.file_prefix);
   --
   -- onload code

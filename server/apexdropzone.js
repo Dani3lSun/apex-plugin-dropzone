@@ -2,7 +2,6 @@
 // Author: Daniel Hochleitner
 // Version: 1.7
 
-var gRun = 'Y';
 // parse string to boolean
 function parseBoolean(pString) {
   var pBoolean;
@@ -90,7 +89,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
    addRemoveLinks: false,
    parallelUploads: vParallelUploads,
    uploadMultiple: false,
-   autoProcessQueue: false,
+   autoProcessQueue: true,
    maxFilesize: vMaxFileSize,
    dictDefaultMessage: vOptions.defaultMessage,
    clickable: vClickable,
@@ -114,24 +113,10 @@ function apexDropzone(pRegionId, pOptions, pLogging){
             load: function(e, file) {
                 // add file and process queue when pasting
                 myDropzone.addFile(file);
-                // only if nothing is uploading
-                if (myDropzone.getUploadingFiles().length == 0) {
-                  myDropzone.processQueue();
-                }
             }
         }
     })  
   }
-  // addedfile: process queue first file
-  myDropzone.on("addedfile",function(file) {
-    if (gRun == 'Y') {
-      myDropzone.processQueue();
-    }
-  });
-  // processing: set gRun to N after first file
-  myDropzone.on("processing",function(file) {
-    gRun = 'N';
-  });
   // overwrite dropzone default upload function
   myDropzone.uploadFiles = function(files) {
     // go through files

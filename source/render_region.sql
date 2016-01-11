@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.7 (11.01.2015)
+ * Version: 1.8 (12.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -26,6 +26,8 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_copy_paste_support    VARCHAR(50) := p_region.attribute_15;
   l_wait_time_ms          NUMBER := p_region.attribute_16;
   l_parallel_uploads      NUMBER := p_region.attribute_17;
+  l_common_file_preview   VARCHAR(50) := p_region.attribute_18;
+  l_dz_style              VARCHAR2(100) := p_region.attribute_19;
   -- other variables
   l_region_id              VARCHAR2(200);
   l_width_esc              VARCHAR2(50);
@@ -44,6 +46,8 @@ BEGIN
   -- set variables and defaults
   l_region_id             := apex_escape.html_attribute(p_region.static_id ||
                                                         '_dropzone');
+  l_dz_style              := nvl(l_dz_style,
+                                 'STYLE1');
   l_max_filesize_mb       := nvl(l_max_filesize_mb,
                                  2);
   l_dz_clickable          := nvl(l_dz_clickable,
@@ -63,12 +67,14 @@ BEGIN
   ELSIF l_parallel_uploads = 0 THEN
     l_parallel_uploads := 1;
   END IF;
-  l_filetoobig_message := nvl(l_filetoobig_message,
-                              'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
-  l_maxfiles_message   := nvl(l_maxfiles_message,
-                              'You can not upload more than {{maxFiles}} files.');
-  l_logging            := nvl(l_logging,
-                              'false');
+  l_common_file_preview := nvl(l_common_file_preview,
+                               'true');
+  l_filetoobig_message  := nvl(l_filetoobig_message,
+                               'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
+  l_maxfiles_message    := nvl(l_maxfiles_message,
+                               'You can not upload more than {{maxFiles}} files.');
+  l_logging             := nvl(l_logging,
+                               'false');
   -- escape input
   l_width_esc              := sys.htf.escape_sc(l_width);
   l_height_esc             := sys.htf.escape_sc(l_height);
@@ -78,10 +84,19 @@ BEGIN
   l_refresh_regionid_esc   := sys.htf.escape_sc(l_refresh_regionid);
   --
   -- add div for dropzone
-  sys.htp.p('<div id="' || l_region_id ||
-            '" class="dropzone" style="border:5px solid grey;width:' ||
-            l_width_esc || ';height:' || l_height_esc ||
-            ';overflow:auto;"></div>');
+  -- style 1 (grey border)
+  IF l_dz_style = 'STYLE1' THEN
+    sys.htp.p('<div id="' || l_region_id ||
+              '" class="dropzone" style="border:5px solid grey;background: white;width:' ||
+              l_width_esc || ';height:' || l_height_esc ||
+              ';overflow:auto;"></div>');
+    -- style 2 (blue dashed border)
+  ELSIF l_dz_style = 'STYLE2' THEN
+    sys.htp.p('<div id="' || l_region_id ||
+              '" class="dropzone" style="border: 3px dashed #0087F7;border-radius: 5px;background: white;width:' ||
+              l_width_esc || ';height:' || l_height_esc ||
+              ';overflow:auto;"></div>');
+  END IF;
   --
   -- add dropzone js and apexdropzone
   apex_javascript.add_library(p_name           => 'dropzone.min',
@@ -130,6 +145,10 @@ BEGIN
                                                                           l_wait_time_ms) ||
                                             apex_javascript.add_attribute('parallelUploads',
                                                                           l_parallel_uploads) ||
+                                            apex_javascript.add_attribute('commonFilePreview',
+                                                                          l_common_file_preview) ||
+                                            apex_javascript.add_attribute('pluginPrefix',
+                                                                          p_plugin.file_prefix) ||
                                             apex_javascript.add_attribute('defaultMessage',
                                                                           l_display_message_esc) ||
                                             apex_javascript.add_attribute('fileTooBigMessage',

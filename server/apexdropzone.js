@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 1.7
+// Version: 1.8
 
 // parse string to boolean
 function parseBoolean(pString) {
@@ -15,6 +15,13 @@ function parseBoolean(pString) {
     pBoolean = undefined;
   }
   return pBoolean;
+}
+// check if image file exists 
+function imageExists(url,good,bad) {
+  var img = new Image();
+  img.onload = good; 
+  img.onerror = bad;
+  img.src = url;
 }
 // builds a js array from long string
 function clob2Array(clob,size,array){
@@ -53,6 +60,7 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   var vCopyPaste         = parseBoolean(vOptions.supportCopyPaste);
   var vWaitTime          = parseInt(vOptions.waitTime);
   var vParallelUploads   = parseInt(vOptions.parallelUploads);
+  var vCommonFilePreview = parseBoolean(vOptions.commonFilePreview);
   // Logging
   if (vlogging) {
     console.log('dropzoneApex: vOptions.ajaxIdentifier:',vOptions.ajaxIdentifier);
@@ -67,6 +75,8 @@ function apexDropzone(pRegionId, pOptions, pLogging){
     console.log('dropzoneApex: vOptions.refreshRegionID:',vOptions.refreshRegionID);
     console.log('dropzoneApex: vOptions.supportCopyPaste:',vOptions.supportCopyPaste);
     console.log('dropzoneApex: vOptions.waitTime:',vOptions.waitTime);
+    console.log('dropzoneApex: vOptions.commonFilePreview:',vOptions.commonFilePreview);
+    console.log('dropzoneApex: vOptions.pluginPrefix:',vOptions.pluginPrefix);
     console.log('dropzoneApex: vOptions.fileTooBigMessage:',vOptions.fileTooBigMessage);
     console.log('dropzoneApex: vOptions.maxFilesMessage:',vOptions.maxFilesMessage);
     console.log('dropzoneApex: pRegionId:',pRegionId);
@@ -116,6 +126,20 @@ function apexDropzone(pRegionId, pOptions, pLogging){
             }
         }
     })  
+  }
+  // add preview images to common file types
+  if (vCommonFilePreview) {
+    myDropzone.on("addedfile", function(file) {
+      // only if not an image
+      if (!(file.type.match(/image.*/))) {
+        var ext = file.name.split('.').pop();
+        var url = vOptions.pluginPrefix + "img/" + ext + ".png";
+        // check if image exists
+        imageExists(url,
+                    function() {$(file.previewElement).find(".dz-image img").attr("src", vOptions.pluginPrefix + "img/" + ext + ".png");},
+                    function() {$(file.previewElement).find(".dz-image img").attr("src", vOptions.pluginPrefix + "img/other.png");});
+      }
+    });
   }
   // overwrite dropzone default upload function
   myDropzone.uploadFiles = function(files) {

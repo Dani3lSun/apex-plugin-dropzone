@@ -3,6 +3,8 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ##Changelog
+####1.9 - added option to include a custom javascript function which get executed on chosen events (added file & upload completed)
+
 ####1.8 - added option to select a default dropzone style (1: grey border / 2: blue dashed border) / added option to display file type preview images for common file types / minified css/js files (full files for debug mode)
 
 ####1.7 - solved lots of performance issues (file + base64 data get uploaded to server) / stability improvements
@@ -43,6 +45,8 @@ The plugin settings are highly customizable and you can change:
 - **Refresh Region after upload (REGION_STATIC_ID)** - Region Static ID of the region which should be refreshed after uploading of all files is complete
 - **Image copy&paste support** - Adds support for Copy&Paste of images in modern Browsers (like Chrome)
 - **Wait in milliseconds** - Wait time between uploaded files in milliseconds
+- **Callback Function Event** - Event of the plugin you want a custom javascript function fired (added file / upload complete)
+- **Callback Function** - A valid javascript function that is executed on the event you selected
 - **File too big message** - Message that is shown when a file is too big
 - **Max files exceeded message** - If max Files is set, this will be the error message when it's exceeded
 - **Page Items to submit** - Page Items that should be set into session state.

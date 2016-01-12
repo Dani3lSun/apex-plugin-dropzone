@@ -3,7 +3,7 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ##Changelog
-####1.9 - added option to include a custom javascript function which get executed on chosen events (added file & upload completed)
+####1.9 - added option to include a custom callback javascript function which get executed on chosen events (added file & upload completed) + added APEX events for added file & upload completed to trigger Dynamic Actions
 
 ####1.8 - added option to select a default dropzone style (1: grey border / 2: blue dashed border) / added option to display file type preview images for common file types / minified css/js files (full files for debug mode)
 

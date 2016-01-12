@@ -138,6 +138,8 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   // add preview images to common file types
   if (vCommonFilePreview) {
     myDropzone.on("addedfile", function(file) {
+      // add apex event
+      $('body').trigger('dropzone-added-file');
       // only if not an image
       if (!(file.type.match(/image.*/))) {
         var ext = file.name.split('.').pop();
@@ -229,6 +231,10 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   }
   // After complete: clear data / refresh region
   myDropzone.on("complete", function() {
+    // add apex event
+    if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
+      $('body').trigger('dropzone-upload-complete');
+    }
     // callback function on complete
     if (vOptions.callbackEvent == 'COMPLETE') {
       if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {

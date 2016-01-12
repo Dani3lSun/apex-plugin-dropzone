@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 1.8
+// Version: 1.9
 
 // parse string to boolean
 function parseBoolean(pString) {
@@ -47,6 +47,12 @@ function sleep_until(pMillseconds) {
      while (new Date() < vMaxSec + pMillseconds) {}
       return true;
 }
+// callback function
+function doCallback(callback) {
+  if (typeof callback === "function") {
+    callback();
+  }
+}
 // function that gets called from plugin
 function apexDropzone(pRegionId, pOptions, pLogging){
   var vOptions           = pOptions;
@@ -76,6 +82,8 @@ function apexDropzone(pRegionId, pOptions, pLogging){
     console.log('dropzoneApex: vOptions.supportCopyPaste:',vOptions.supportCopyPaste);
     console.log('dropzoneApex: vOptions.waitTime:',vOptions.waitTime);
     console.log('dropzoneApex: vOptions.commonFilePreview:',vOptions.commonFilePreview);
+    console.log('dropzoneApex: vOptions.callbackEvent:',vOptions.callbackEvent);
+    console.log('dropzoneApex: vOptions.callbackFnc:',vOptions.callbackFnc);
     console.log('dropzoneApex: vOptions.pluginPrefix:',vOptions.pluginPrefix);
     console.log('dropzoneApex: vOptions.fileTooBigMessage:',vOptions.fileTooBigMessage);
     console.log('dropzoneApex: vOptions.maxFilesMessage:',vOptions.maxFilesMessage);
@@ -138,6 +146,13 @@ function apexDropzone(pRegionId, pOptions, pLogging){
         imageExists(url,
                     function() {$(file.previewElement).find(".dz-image img").attr("src", vOptions.pluginPrefix + "img/" + ext + ".png");},
                     function() {$(file.previewElement).find(".dz-image img").attr("src", vOptions.pluginPrefix + "img/other.png");});
+      }
+      // callback function on added file
+      if (vOptions.callbackEvent == 'ADDEDFILE') {
+        var fncString = "return " + vOptions.callbackFnc.replace(/;+$/,'') + ";"
+        new Function(fncString)();
+        var customFnc = new Function(fncString)();
+        doCallback(customFnc(file));
       }
     });
   }
@@ -214,6 +229,15 @@ function apexDropzone(pRegionId, pOptions, pLogging){
   }
   // After complete: clear data / refresh region
   myDropzone.on("complete", function() {
+    // callback function on complete
+    if (vOptions.callbackEvent == 'COMPLETE') {
+      if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
+        var fncString = "return " + vOptions.callbackFnc.replace(/;+$/,'') + ";"
+        new Function(fncString)();
+        var customFnc = new Function(fncString)();
+        doCallback(customFnc());
+      }
+    }
     // remove all files after upload is complete
     if (vRemoveAfterUpload) {
       if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {

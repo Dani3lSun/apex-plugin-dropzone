@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.8 (12.01.2015)
+ * Version: 1.9 (13.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -28,6 +28,8 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_parallel_uploads      NUMBER := p_region.attribute_17;
   l_common_file_preview   VARCHAR(50) := p_region.attribute_18;
   l_dz_style              VARCHAR2(100) := p_region.attribute_19;
+  l_callback_event        VARCHAR(50) := p_region.attribute_20;
+  l_callback_fnc          VARCHAR(4000) := p_region.attribute_21;
   -- other variables
   l_region_id              VARCHAR2(200);
   l_width_esc              VARCHAR2(50);
@@ -162,6 +164,10 @@ BEGIN
                                                                           l_parallel_uploads) ||
                                             apex_javascript.add_attribute('commonFilePreview',
                                                                           l_common_file_preview) ||
+                                            apex_javascript.add_attribute('callbackEvent',
+                                                                          l_callback_event) ||
+                                            apex_javascript.add_attribute('callbackFnc',
+                                                                          l_callback_fnc) ||
                                             apex_javascript.add_attribute('pluginPrefix',
                                                                           p_plugin.file_prefix) ||
                                             apex_javascript.add_attribute('defaultMessage',

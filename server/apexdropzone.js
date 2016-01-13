@@ -162,7 +162,7 @@ var apexDropzone = {
         var fncString = "return " + vOptions.callbackFnc.replace(/;+$/, '') + ";";
         new Function(fncString)();
         var customFnc = new Function(fncString)();
-        dapexDropzone.oCallback(customFnc(file));
+        apexDropzone.doCallback(customFnc(file));
       }
     });
     // overwrite dropzone default upload function

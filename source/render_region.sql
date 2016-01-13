@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.9 (13.01.2015)
+ * Version: 1.9.1 (13.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -138,7 +138,7 @@ BEGIN
                     p_directory => p_plugin.file_prefix);
   --
   -- onload code
-  apex_javascript.add_onload_code(p_code => 'apexDropzone(' ||
+  apex_javascript.add_onload_code(p_code => 'apexDropzone.apexDropzoneFnc(' ||
                                             apex_javascript.add_value(p_region.static_id) || '{' ||
                                             apex_javascript.add_attribute('pageItems',
                                                                           apex_plugin_util.page_item_names_to_jquery(l_items_submit)) ||

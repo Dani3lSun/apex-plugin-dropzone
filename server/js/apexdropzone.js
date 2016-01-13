@@ -167,76 +167,76 @@ var apexDropzone = {
     });
     // overwrite dropzone default upload function
     myDropzone.uploadFiles = function(files) {
-        // go through files
-        for (var i = 0; i < files.length; i++) {
-          var file = files[i];
-          //set upload progress 10%
-          myDropzone.emit('uploadprogress', file, 10, file.size / 10);
-          // Filereader => file to Binary to base64
-          var reader = new FileReader();
-          reader.onload = (function(pfile) {
-            return function(e) {
-              if (pfile) {
-                // BinaryInt8Array to base64
-                var base64 = apexDropzone.binaryArray2base64(e.target.result);
-                //set upload progress 25%
-                myDropzone.emit('uploadprogress', file, 25, file.size / 4);
-                // split base64 clob string to f01 array length 30k
-                var f01Array = [];
-                f01Array = apexDropzone.clob2Array(base64, 30000, f01Array);
-                //set upload progress 50%
-                myDropzone.emit('uploadprogress', file, 50, file.size / 2);
-                // AJAX call apex.server.plugin and process file queue if success
-                apex.server.plugin(vOptions.ajaxIdentifier, {
-                  x01: file.name,
-                  x02: file.type,
-                  f01: f01Array,
-                  pageItems: vOptions.pageItems
-                }, {
-                  dataType: 'html',
-                  // SUCESS function
-                  success: function() {
-                    //sleep hack for large number of small files
-                    apexDropzone.sleep_until(vWaitTime);
-                    // set file status SUCCESS / UPLOAD 100%
-                    myDropzone.emit('uploadprogress', file, 100, file.size);
-                    file.status = Dropzone.SUCCESS;
-                    myDropzone.emit("success", file, 'success', null);
-                    myDropzone.emit("complete", file);
-                    // process file queue
-                    myDropzone.processQueue();
-                  },
-                  // ERROR function
-                  error: function(xhr, pMessage) {
-                    //sleep hack for large number of small files
-                    apexDropzone.sleep_until(vWaitTime);
-                    // set file status ERROR
-                    file.status = Dropzone.ERROR;
-                    // build message for error template
-                    var message = "";
-                    if (pMessage === null || pMessage === undefined) {
-                      message = 'Error processing file.';
-                    } else {
-                      message = pMessage;
-                    }
-                    myDropzone.emit("error", file, message, xhr);
-                    myDropzone.emit("complete", file);
-                    // process file queue
-                    myDropzone.processQueue();
+      // go through files
+      for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        //set upload progress 10%
+        myDropzone.emit('uploadprogress', file, 10, file.size / 10);
+        // Filereader => file to Binary to base64
+        var reader = new FileReader();
+        reader.onload = (function(pfile) {
+          return function(e) {
+            if (pfile) {
+              // BinaryInt8Array to base64
+              var base64 = apexDropzone.binaryArray2base64(e.target.result);
+              //set upload progress 25%
+              myDropzone.emit('uploadprogress', file, 25, file.size / 4);
+              // split base64 clob string to f01 array length 30k
+              var f01Array = [];
+              f01Array = apexDropzone.clob2Array(base64, 30000, f01Array);
+              //set upload progress 50%
+              myDropzone.emit('uploadprogress', file, 50, file.size / 2);
+              // AJAX call apex.server.plugin and process file queue if success
+              apex.server.plugin(vOptions.ajaxIdentifier, {
+                x01: file.name,
+                x02: file.type,
+                f01: f01Array,
+                pageItems: vOptions.pageItems
+              }, {
+                dataType: 'html',
+                // SUCESS function
+                success: function() {
+                  //sleep hack for large number of small files
+                  apexDropzone.sleep_until(vWaitTime);
+                  // set file status SUCCESS / UPLOAD 100%
+                  myDropzone.emit('uploadprogress', file, 100, file.size);
+                  file.status = Dropzone.SUCCESS;
+                  myDropzone.emit("success", file, 'success', null);
+                  myDropzone.emit("complete", file);
+                  // process file queue
+                  myDropzone.processQueue();
+                },
+                // ERROR function
+                error: function(xhr, pMessage) {
+                  //sleep hack for large number of small files
+                  apexDropzone.sleep_until(vWaitTime);
+                  // set file status ERROR
+                  file.status = Dropzone.ERROR;
+                  // build message for error template
+                  var message = "";
+                  if (pMessage === null || pMessage === undefined) {
+                    message = 'Error processing file.';
+                  } else {
+                    message = pMessage;
                   }
-                });
-                // if file not found: process queue
-              } else {
-                //sleep hack for large number of small files
-                apexDropzone.sleep_until(vWaitTime);
-                myDropzone.processQueue();
-              }
-            };
-          })(file);
-          reader.readAsArrayBuffer(file);
-        }
-      };
-      // After complete: apex event / callback event / clear dropzone data / refresh region
+                  myDropzone.emit("error", file, message, xhr);
+                  myDropzone.emit("complete", file);
+                  // process file queue
+                  myDropzone.processQueue();
+                }
+              });
+              // if file not found: process queue
+            } else {
+              //sleep hack for large number of small files
+              apexDropzone.sleep_until(vWaitTime);
+              myDropzone.processQueue();
+            }
+          };
+        })(file);
+        reader.readAsArrayBuffer(file);
+      }
+    };
+    // After complete: apex event / callback event / clear dropzone data / refresh region
     myDropzone.on("complete", function() {
       if (myDropzone.getQueuedFiles().length === 0 && myDropzone.getUploadingFiles().length === 0) {
         // add apex event

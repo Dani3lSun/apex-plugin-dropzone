@@ -117,25 +117,28 @@ BEGIN
   --
   -- add dropzone js and apexdropzone
   apex_javascript.add_library(p_name           => l_dropzone_js,
-                              p_directory      => p_plugin.file_prefix,
+                              p_directory      => p_plugin.file_prefix ||
+                                                  'js/',
                               p_version        => NULL,
                               p_skip_extension => FALSE);
   --
   apex_javascript.add_library(p_name           => l_apexdropzone_js,
-                              p_directory      => p_plugin.file_prefix,
+                              p_directory      => p_plugin.file_prefix ||
+                                                  'js/',
                               p_version        => NULL,
                               p_skip_extension => FALSE);
   -- filereader for Copy&Paste support
   IF l_copy_paste_support = 'true' THEN
     apex_javascript.add_library(p_name           => l_filereader_js,
-                                p_directory      => p_plugin.file_prefix,
+                                p_directory      => p_plugin.file_prefix ||
+                                                    'js/',
                                 p_version        => NULL,
                                 p_skip_extension => FALSE);
   END IF;
   --
   -- add dropzone css
   apex_css.add_file(p_name      => l_dropzone_css,
-                    p_directory => p_plugin.file_prefix);
+                    p_directory => p_plugin.file_prefix || 'css/');
   --
   -- onload code
   apex_javascript.add_onload_code(p_code => 'apexDropzone.apexDropzoneFnc(' ||

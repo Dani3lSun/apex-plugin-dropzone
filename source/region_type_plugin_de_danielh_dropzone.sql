@@ -627,7 +627,8 @@ wwv_flow_api.create_plugin_attribute(
 ,p_lov_type=>'STATIC'
 ,p_help_text=>wwv_flow_utilities.join(wwv_flow_t_varchar2(
 'Show preview images for common file types when adding files.<br>',
-'Images got displayed with real content.'))
+'Images got displayed with real content.<br>',
+'If you want to add more images or others just copy/upload the png files to "img" directory. Naming: <file-extension>.png'))
 );
 wwv_flow_api.create_plugin_attr_value(
  p_id=>wwv_flow_api.id(43881110535708271)

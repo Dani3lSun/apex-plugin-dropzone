@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 1.9
+// Version: 1.9.1
 
 // parse string to boolean
 function parseBoolean(pString) {
@@ -135,11 +135,12 @@ function apexDropzone(pRegionId, pOptions, pLogging) {
       }
     })
   }
-  // add preview images to common file types
-  if (vCommonFilePreview) {
-    myDropzone.on("addedfile", function(file) {
-      // add apex event
-      $('#' + pRegionId).trigger('dropzone-added-file');
+  // On addedfile: apex event / preview images / callback event
+  myDropzone.on("addedfile", function(file) {
+    // add apex event
+    $('#' + pRegionId).trigger('dropzone-added-file');
+    // add preview images to common file types
+    if (vCommonFilePreview) {
       // only if not an image
       if (!(file.type.match(/image.*/))) {
         var ext = file.name.split('.').pop();
@@ -153,15 +154,15 @@ function apexDropzone(pRegionId, pOptions, pLogging) {
             $(file.previewElement).find(".dz-image img").attr("src", vOptions.pluginPrefix + "img/other.png");
           });
       }
-      // callback function on added file
-      if (vOptions.callbackEvent == 'ADDEDFILE') {
-        var fncString = "return " + vOptions.callbackFnc.replace(/;+$/, '') + ";"
-        new Function(fncString)();
-        var customFnc = new Function(fncString)();
-        doCallback(customFnc(file));
-      }
-    });
-  }
+    }
+    // callback function on added file
+    if (vOptions.callbackEvent == 'ADDEDFILE') {
+      var fncString = "return " + vOptions.callbackFnc.replace(/;+$/, '') + ";"
+      new Function(fncString)();
+      var customFnc = new Function(fncString)();
+      doCallback(customFnc(file));
+    }
+  });
   // overwrite dropzone default upload function
   myDropzone.uploadFiles = function(files) {
       // go through files
@@ -233,33 +234,27 @@ function apexDropzone(pRegionId, pOptions, pLogging) {
         reader.readAsArrayBuffer(file);
       }
     }
-    // After complete: clear data / refresh region
+    // After complete: apex event / callback event / clear dropzone data / refresh region
   myDropzone.on("complete", function() {
-    // add apex event
     if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
+      // add apex event
       $('#' + pRegionId).trigger('dropzone-upload-complete');
-    }
-    // callback function on complete
-    if (vOptions.callbackEvent == 'COMPLETE') {
-      if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
+      // callback function on complete
+      if (vOptions.callbackEvent == 'COMPLETE') {
         var fncString = "return " + vOptions.callbackFnc.replace(/;+$/, '') + ";"
         new Function(fncString)();
         var customFnc = new Function(fncString)();
         doCallback(customFnc());
       }
-    }
-    // remove all files after upload is complete
-    if (vRemoveAfterUpload) {
-      if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
+      // remove all files after upload is complete
+      if (vRemoveAfterUpload) {
         // wait 3 secs
         setTimeout(function() {
           myDropzone.removeAllFiles();
         }, 3000);
       }
-    }
-    // refresh region after upload is complete
-    if (vOptions.refreshRegionID) {
-      if (myDropzone.getQueuedFiles().length == 0 && myDropzone.getUploadingFiles().length == 0) {
+      // refresh region after upload is complete
+      if (vOptions.refreshRegionID) {
         // wait 3 secs
         setTimeout(function() {
           apex.event.trigger('#' + vOptions.refreshRegionID, 'apexrefresh');;

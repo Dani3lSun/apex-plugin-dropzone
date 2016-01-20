@@ -160,7 +160,6 @@ var apexDropzone = {
       // callback function on added file
       if (vOptions.callbackEvent == 'ADDEDFILE') {
         var fncString = "return " + vOptions.callbackFnc.replace(/;+$/, '') + ";";
-        new Function(fncString)();
         var customFnc = new Function(fncString)();
         apexDropzone.doCallback(customFnc(file));
       }

@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.9.1 (13.01.2015)
+ * Version: 1.9.2 (25.01.2015)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -197,7 +197,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   RETURN apex_plugin.t_region_ajax_result IS
   --
   -- plugin attributes
-  l_result apex_plugin.t_dynamic_action_ajax_result;
+  l_result apex_plugin.t_region_ajax_result;
   l_plsql  p_region.attribute_07%TYPE := p_region.attribute_07;
   --
 BEGIN

@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 1.9.1
+// Version: 1.9.2
 
 // global namespace
 var apexDropzone = {

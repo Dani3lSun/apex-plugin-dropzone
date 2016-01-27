@@ -251,7 +251,7 @@ wwv_flow_api.create_plugin(
 ,p_help_text=>'Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads. It is based on JS Framework dropzone.js.'
 ,p_version_identifier=>'1.9.2'
 ,p_about_url=>'https://github.com/Dani3lSun/apex-plugin-dropzone'
-,p_files_version=>832
+,p_files_version=>834
 );
 wwv_flow_api.create_plugin_attribute(
  p_id=>wwv_flow_api.id(43433293411189089)
@@ -369,11 +369,16 @@ wwv_flow_api.create_plugin_attribute(
 '  l_filename        VARCHAR2(200);',
 '  l_mime_type       VARCHAR2(100);',
 '  l_token           VARCHAR2(32000);',
+'  l_random_file_id  NUMBER;',
 '  --',
 'BEGIN',
 '  -- get defaults from AJAX Process',
 '  l_filename  := apex_application.g_x01;',
-'  l_mime_type := apex_application.g_x02;',
+'  l_mime_type := nvl(apex_application.g_x02,',
+'                     ''application/octet-stream'');',
+'  -- random file id',
+'  l_random_file_id := round(dbms_random.value(100000,',
+'                                              99999999));',
 '  -- build CLOB from f01 30k Array',
 '  dbms_lob.createtemporary(l_clob,',
 '                           FALSE,',
@@ -405,6 +410,7 @@ wwv_flow_api.create_plugin_attribute(
 '                               p_c001            => l_filename, -- filename',
 '                               p_c002            => l_mime_type, -- mime_type',
 '                               p_d001            => SYSDATE, -- date created',
+'                               p_n001            => l_random_file_id, -- random file id',
 '                               p_blob001         => l_blob); -- BLOB file content',
 '  END IF;',
 '  --',
@@ -414,6 +420,7 @@ wwv_flow_api.create_plugin_attribute(
 'SELECT c001    AS filename,<br>',
 '       c002    AS mime_type,<br>',
 '       d001    AS date_created,<br>',
+'       n001    AS file_id,<br>',
 '       blob001 AS file_content<br>',
 '  FROM apex_collections<br>',
 ' WHERE collection_name = ''DROPZONE_UPLOAD'';'))
@@ -423,6 +430,7 @@ wwv_flow_api.create_plugin_attribute(
 'Column c001 => filename<br>',
 'Column c002 => mime_type<br>',
 'Column d001 => date created<br>',
+'Column n001 => random file id<br>',
 'Column blob001 => BLOB of file<br>'))
 );
 wwv_flow_api.create_plugin_attribute(

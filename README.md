@@ -3,6 +3,8 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ##Changelog
+####1.9.2 - added a random file id to APEX collection (better identification of file by it´s id) / empty file mime types now set to "application/octet-stream" / code cleanup
+
 ####1.9.1 - added more file preview images / more structured file paths / APEX event triggers on Region (not body) / no global js functions any more, wrapped code in namespace "apexDropzone" / cleaned up js code
 
 ####1.9 - added option to include a custom callback javascript function which get executed on chosen events (added file & upload completed) + added APEX events for added file & upload completed to trigger Dynamic Actions
@@ -71,11 +73,16 @@ DECLARE
   l_filename        VARCHAR2(200);
   l_mime_type       VARCHAR2(100);
   l_token           VARCHAR2(32000);
+  l_random_file_id  NUMBER;
   --
 BEGIN
   -- get defaults from AJAX Process
   l_filename  := apex_application.g_x01;
-  l_mime_type := apex_application.g_x02;
+  l_mime_type := nvl(apex_application.g_x02,
+                     'application/octet-stream');
+  -- random file id
+  l_random_file_id := round(dbms_random.value(100000,
+                                              99999999));
   -- build CLOB from f01 30k Array
   dbms_lob.createtemporary(l_clob,
                            FALSE,
@@ -83,7 +90,7 @@ BEGIN
 
   FOR i IN 1 .. apex_application.g_f01.count LOOP
     l_token := wwv_flow.g_f01(i);
-  
+
     IF length(l_token) > 0 THEN
       dbms_lob.writeappend(l_clob,
                            length(l_token),
@@ -107,6 +114,7 @@ BEGIN
                                p_c001            => l_filename, -- filename
                                p_c002            => l_mime_type, -- mime_type
                                p_d001            => SYSDATE, -- date created
+                               p_n001            => l_random_file_id, -- random file id
                                p_blob001         => l_blob); -- BLOB file content
   END IF;
   --
@@ -120,6 +128,7 @@ If you use the default PL/SQL code provided with this plugin, the files are save
 SELECT c001    AS filename,
        c002    AS mime_type,
        d001    AS date_created,
+       n001    AS file_id,
        blob001 AS file_content
   FROM apex_collections
  WHERE collection_name = 'DROPZONE_UPLOAD';

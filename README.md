@@ -136,8 +136,15 @@ SELECT c001    AS filename,
 
 ##Hint for ORDS and Tomcat users
 If you have problems with uploading larger files, then it could be a issue with the max. allowed post size of Tomcat server (default is 2MB). To get around this issue please add the parameter **maxPostSize** with a byte value to your connector in server.xml file of tomcat.
+
+For AJP connector:
 ```
 <Connector port="8009" protocol="AJP/1.3" redirectPort="8443" address="127.0.0.1" maxPostSize="15728640" />
+```
+
+For HTTP connector:
+```
+<Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" address="127.0.0.1" maxPostSize="15728640" />
 ```
 
 This example sets maxPostSize to 15MB or 15728640 bytes.

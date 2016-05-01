@@ -1,39 +1,39 @@
-#Oracle APEX Region Plugin - Dropzone
+# Oracle APEX Region Plugin - Dropzone
 Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads.
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
-##Changelog
-####1.9.2 - added a random file id to APEX collection (better identification of file by it´s id) / empty file mime types now set to "application/octet-stream" / code cleanup
+## Changelog
+#### 1.9.2 - added a random file id to APEX collection (better identification of file by it´s id) / empty file mime types now set to "application/octet-stream" / code cleanup
 
-####1.9.1 - added more file preview images / more structured file paths / APEX event triggers on Region (not body) / no global js functions any more, wrapped code in namespace "apexDropzone" / cleaned up js code
+#### 1.9.1 - added more file preview images / more structured file paths / APEX event triggers on Region (not body) / no global js functions any more, wrapped code in namespace "apexDropzone" / cleaned up js code
 
-####1.9 - added option to include a custom callback javascript function which get executed on chosen events (added file & upload completed) + added APEX events for added file & upload completed to trigger Dynamic Actions
+#### 1.9 - added option to include a custom callback javascript function which get executed on chosen events (added file & upload completed) + added APEX events for added file & upload completed to trigger Dynamic Actions
 
-####1.8 - added option to select a default dropzone style (1: grey border / 2: blue dashed border) / added option to display file type preview images for common file types / minified css/js files (full files for debug mode)
+#### 1.8 - added option to select a default dropzone style (1: grey border / 2: blue dashed border) / added option to display file type preview images for common file types / minified css/js files (full files for debug mode)
 
-####1.7 - solved lots of performance issues (file + base64 data get uploaded to server) / stability improvements
+#### 1.7 - solved lots of performance issues (file + base64 data get uploaded to server) / stability improvements
 
-####1.6 - added number of parallel uploads option (1 or 2 concurrent) / performance improvements (base64 encoding when file was added instead of sending moment) / better error handling
+#### 1.6 - added number of parallel uploads option (1 or 2 concurrent) / performance improvements (base64 encoding when file was added instead of sending moment) / better error handling
 
-####1.5 - performance improvements(removed redundant AJAX call) / split the clob into a 30k param array (OHS 32k limit for params) / added callback function to apex.server.plugin that processes the files queue
+#### 1.5 - performance improvements(removed redundant AJAX call) / split the clob into a 30k param array (OHS 32k limit for params) / added callback function to apex.server.plugin that processes the files queue
 
-####1.4 - added option to refresh a chosen region (with REGION_STATIC_ID) after uploading of all files is complete / Copy&Paste support of images in modern Browsers (like Chrome)
+#### 1.4 - added option to refresh a chosen region (with REGION_STATIC_ID) after uploading of all files is complete / Copy&Paste support of images in modern Browsers (like Chrome)
 
-####1.3 - set default for "max Files" to dropzone default of 256
+#### 1.3 - set default for "max Files" to dropzone default of 256
 
-####1.2 - added max files per upload option / added customizable messages for better multilingual support
+#### 1.2 - added max files per upload option / added customizable messages for better multilingual support
 
-####1.1 - added options to limit uploading of declared file types (file endings, mime_types, wildcards) / clear dropzone area after uploading of all files finished
+#### 1.1 - added options to limit uploading of declared file types (file endings, mime_types, wildcards) / clear dropzone area after uploading of all files finished
 
-####1.0 - Initial Release
+#### 1.0 - Initial Release
 
-####Beta - In development
+#### Beta - In development
 
-##Install
+## Install
 - Import plugin file "region_type_plugin_de_danielh_dropzone.sql.sql" from source directory into your application
 - (Optional) Deploy the CSS/JS files from "server" directory on your webserver and change the "File Prefix" to webservers folder.
 
-##Plugin Settings
+## Plugin Settings
 The plugin settings are highly customizable and you can change:
 - **Dropzone Style** - Default style of Dropzone area (grey border / blue dashed border)
 - **Width** - default width of Dropzone area. Valid values are px and % data
@@ -57,11 +57,15 @@ The plugin settings are highly customizable and you can change:
 - **PLSQL Code** - PLSQL code which saves the files to database tables or collections
 - **Logging** - Whether to log events in the console
 
-##How to use
+## Plugin Events
+- **Dropzone added file** - DA event that fires when a file gets added to the dropzone area
+- **Dropzone upload completed** - DA event that fires when uploading all files completed
+
+## How to use
 - Create a Dropzone region on target page
 - Choose best fitting plugin attributes (help included)
 
-####Save to DB using PL/SQL
+#### Save to DB using PL/SQL
 For saving files to DB you can use a PL/SQL function like this:
 
 ```language-sql
@@ -121,7 +125,7 @@ BEGIN
 END;
 ```
 
-####Get files from default PL/SQL code
+#### Get files from default PL/SQL code
 If you use the default PL/SQL code provided with this plugin, the files are saved in a APEX collection called "DROPZONE_UPLOAD". Select it like that:
 
 ```language-sql
@@ -134,7 +138,7 @@ SELECT c001    AS filename,
  WHERE collection_name = 'DROPZONE_UPLOAD';
  ```
 
-##Hint for ORDS and Tomcat users
+## Hint for ORDS and Tomcat users
 If you have problems with uploading larger files, then it could be a issue with the max. allowed post size of Tomcat server (default is 2MB). To get around this issue please add the parameter **maxPostSize** with a byte value to your connector in server.xml file of tomcat.
 
 For AJP connector:
@@ -149,12 +153,12 @@ For HTTP connector:
 
 This example sets maxPostSize to 15MB or 15728640 bytes.
 
-##Demo Application
+## Demo Application
 https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
-##Preview
+## Preview
 ![](https://github.com/Dani3lSun/apex-plugin-dropzone/blob/master/preview.gif)
 
-####Preview Copy&Paste
+#### Preview Copy&Paste
 ![](https://github.com/Dani3lSun/apex-plugin-dropzone/blob/master/preview_copy_paste.gif)
 ---

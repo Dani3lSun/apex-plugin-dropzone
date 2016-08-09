@@ -3,6 +3,8 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ## Changelog
+#### 1.9.3 - solved performance issues when converting larger files from base64 CLOB to BLOB
+
 #### 1.9.2 - added a random file id to APEX collection (better identification of file by it´s id) / empty file mime types now set to "application/octet-stream" / code cleanup
 
 #### 1.9.1 - added more file preview images / more structured file paths / APEX event triggers on Region (not body) / no global js functions any more, wrapped code in namespace "apexDropzone" / cleaned up js code
@@ -72,7 +74,6 @@ For saving files to DB you can use a PL/SQL function like this:
 DECLARE
   --
   l_collection_name VARCHAR2(100);
-  l_clob            CLOB;
   l_blob            BLOB;
   l_filename        VARCHAR2(200);
   l_mime_type       VARCHAR2(100);
@@ -87,22 +88,17 @@ BEGIN
   -- random file id
   l_random_file_id := round(dbms_random.value(100000,
                                               99999999));
-  -- build CLOB from f01 30k Array
-  dbms_lob.createtemporary(l_clob,
+  -- build BLOB from f01 30k Array (base64 encoded)
+  dbms_lob.createtemporary(l_blob,
                            FALSE,
                            dbms_lob.session);
-
   FOR i IN 1 .. apex_application.g_f01.count LOOP
     l_token := wwv_flow.g_f01(i);
-
     IF length(l_token) > 0 THEN
-      dbms_lob.writeappend(l_clob,
-                           length(l_token),
-                           l_token);
+      dbms_lob.append(l_blob,
+                      to_blob(utl_encode.base64_decode(utl_raw.cast_to_raw(l_token))));
     END IF;
   END LOOP;
-  -- convert base64 CLOB to BLOB
-  l_blob := apex_web_service.clobbase642blob(p_clob => l_clob);
   --
   -- create own collection (here starts custom part (for example a Insert statement))
   -- collection name

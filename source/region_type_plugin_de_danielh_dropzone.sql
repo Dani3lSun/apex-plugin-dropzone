@@ -13,7 +13,7 @@ whenever sqlerror exit sql.sqlcode rollback
 begin
 wwv_flow_api.import_begin (
  p_version_yyyy_mm_dd=>'2013.01.01'
-,p_release=>'5.0.3.00.03'
+,p_release=>'5.0.4.00.12'
 ,p_default_workspace_id=>42937890966776491
 ,p_default_application_id=>600
 ,p_default_owner=>'APEX_PLUGIN'
@@ -36,7 +36,7 @@ wwv_flow_api.create_plugin(
 ,p_plsql_code=>wwv_flow_utilities.join(wwv_flow_t_varchar2(
 '/*-------------------------------------',
 ' * Dropzone Apex Plugin',
-' * Version: 1.9.2 (25.01.2015)',
+' * Version: 1.9.3 (09.08.2016)',
 ' * Author:  Daniel Hochleitner',
 ' *-------------------------------------',
 '*/',
@@ -249,9 +249,9 @@ wwv_flow_api.create_plugin(
 ,p_substitute_attributes=>false
 ,p_subscribe_plugin_settings=>true
 ,p_help_text=>'Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads. It is based on JS Framework dropzone.js.'
-,p_version_identifier=>'1.9.2'
+,p_version_identifier=>'1.9.3'
 ,p_about_url=>'https://github.com/Dani3lSun/apex-plugin-dropzone'
-,p_files_version=>834
+,p_files_version=>841
 );
 wwv_flow_api.create_plugin_attribute(
  p_id=>wwv_flow_api.id(43433293411189089)
@@ -364,7 +364,6 @@ wwv_flow_api.create_plugin_attribute(
 'DECLARE',
 '  --',
 '  l_collection_name VARCHAR2(100);',
-'  l_clob            CLOB;',
 '  l_blob            BLOB;',
 '  l_filename        VARCHAR2(200);',
 '  l_mime_type       VARCHAR2(100);',
@@ -379,22 +378,17 @@ wwv_flow_api.create_plugin_attribute(
 '  -- random file id',
 '  l_random_file_id := round(dbms_random.value(100000,',
 '                                              99999999));',
-'  -- build CLOB from f01 30k Array',
-'  dbms_lob.createtemporary(l_clob,',
+'  -- build BLOB from f01 30k Array (base64 encoded)',
+'  dbms_lob.createtemporary(l_blob,',
 '                           FALSE,',
 '                           dbms_lob.session);',
-'',
 '  FOR i IN 1 .. apex_application.g_f01.count LOOP',
 '    l_token := wwv_flow.g_f01(i);',
-'  ',
 '    IF length(l_token) > 0 THEN',
-'      dbms_lob.writeappend(l_clob,',
-'                           length(l_token),',
-'                           l_token);',
+'      dbms_lob.append(l_blob,',
+'                      to_blob(utl_encode.base64_decode(utl_raw.cast_to_raw(l_token))));',
 '    END IF;',
 '  END LOOP;',
-'  -- convert base64 CLOB to BLOB',
-'  l_blob := apex_web_service.clobbase642blob(p_clob => l_clob);',
 '  --',
 '  -- create own collection (here starts custom part (for example a Insert statement))',
 '  -- collection name',
@@ -5517,7 +5511,7 @@ end;
 /
 begin
 wwv_flow_api.g_varchar2_table := wwv_flow_api.empty_varchar2_table;
-wwv_flow_api.g_varchar2_table(1) := '2F2F20415045582044726F707A6F6E652066756E6374696F6E730A2F2F20417574686F723A2044616E69656C20486F63686C6569746E65720A2F2F2056657273696F6E3A20312E392E320A0A2F2F20676C6F62616C206E616D6573706163650A76617220';
+wwv_flow_api.g_varchar2_table(1) := '2F2F20415045582044726F707A6F6E652066756E6374696F6E730A2F2F20417574686F723A2044616E69656C20486F63686C6569746E65720A2F2F2056657273696F6E3A20312E392E330A0A2F2F20676C6F62616C206E616D6573706163650A76617220';
 wwv_flow_api.g_varchar2_table(2) := '6170657844726F707A6F6E65203D207B0A20202F2F20706172736520737472696E6720746F20626F6F6C65616E0A20207061727365426F6F6C65616E3A2066756E6374696F6E2870537472696E6729207B0A202020207661722070426F6F6C65616E3B0A';
 wwv_flow_api.g_varchar2_table(3) := '202020206966202870537472696E672E746F4C6F776572436173652829203D3D2027747275652729207B0A20202020202070426F6F6C65616E203D20747275653B0A202020207D0A202020206966202870537472696E672E746F4C6F7765724361736528';
 wwv_flow_api.g_varchar2_table(4) := '29203D3D202766616C73652729207B0A20202020202070426F6F6C65616E203D2066616C73653B0A202020207D0A2020202069662028212870537472696E672E746F4C6F776572436173652829203D3D202774727565272920262620212870537472696E';

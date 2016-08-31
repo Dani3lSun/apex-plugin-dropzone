@@ -3,6 +3,8 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ## Changelog
+#### 1.9.4 - updated dropzone library to 4.3.0 / added a much more detailed upload progress bar per file
+
 #### 1.9.3 - solved performance issues when converting larger files from base64 CLOB to BLOB
 
 #### 1.9.2 - added a random file id to APEX collection (better identification of file by it´s id) / empty file mime types now set to "application/octet-stream" / code cleanup

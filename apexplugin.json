@@ -12,7 +12,9 @@
   "author" : {
     "name" : "Daniel Hochleitner",
     "email" : "daniel@danielh.de",
-    "url" : "https://danielhochleitner.de"
+    "url" : "https://danielhochleitner.de",
+    "twitter" : "Dani3lSun",
+    "donationUrl" : "https://www.paypal.me/DanielHochleitnerIT/3"
   },
   "repository" : {
     "type" : "git",

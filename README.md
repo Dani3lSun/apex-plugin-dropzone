@@ -3,6 +3,8 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ## Changelog
+#### 1.9.5 - fully compatible with APEX 5.1 / Delete files inside Dropzone / General Code Cleanup / New Plugin Events
+
 #### 1.9.4 - updated dropzone library to 4.3.0 / added a much more detailed upload progress bar per file
 
 #### 1.9.3 - solved performance issues when converting larger files from base64 CLOB to BLOB
@@ -53,24 +55,32 @@ The plugin settings are highly customizable and you can change:
 - **Refresh Region after upload (REGION_STATIC_ID)** - Region Static ID of the region which should be refreshed after uploading of all files is complete
 - **Image copy&paste support** - Adds support for Copy&Paste of images in modern Browsers (like Chrome)
 - **Wait in milliseconds** - Wait time between uploaded files in milliseconds
-- **Callback Function Event** - Event of the plugin you want a custom javascript function fired (added file / upload complete)
-- **Callback Function** - A valid javascript function that is executed on the event you selected
+- **JavaScript Callback Function Event** - Event of the plugin you want a custom javascript function fired (added file / upload complete)
+- **JavaScript Callback Function** - A valid javascript function that is executed on the event you selected
 - **File too big message** - Message that is shown when a file is too big
 - **Max files exceeded message** - If max Files is set, this will be the error message when it's exceeded
 - **Page Items to submit** - Page Items that should be set into session state.
-- **PLSQL Code** - PLSQL code which saves the files to database tables or collections
+- **PLSQL Code (Upload)** - PLSQL code which saves the files to database tables or collections
+- **Delete Files** - Possibility for end users to delete each file that was uploaded to the server
+- **PLSQL Code (Delete)** - PLSQL code which deletes a file from database tables or collections
+- **Cancel Upload Message** - If *Delete Files* is set, this will be the message of the link to cancel the upload of a file
+- **Remove File Message** - If *Delete Files* is set, this will be the message of the link to remove a file
 - **Logging** - Whether to log events in the console
 
 ## Plugin Events
 - **Dropzone added file** - DA event that fires when a file gets added to the dropzone area
 - **Dropzone upload completed** - DA event that fires when uploading all files completed
+- **Dropzone upload file success** - DA event that fires when uploading all files completed
+- **Dropzone upload file error** - DA event that fires when uploading all files completed
+- **Dropzone delete file success** - DA event that fires when uploading all files completed
+- **Dropzone delete file error** - DA event that fires when uploading all files completed
 
 ## How to use
 - Create a Dropzone region on target page
 - Choose best fitting plugin attributes (help included)
 
-#### Save to DB using PL/SQL
-For saving files to DB you can use a PL/SQL function like this:
+#### Save/Upload files to DB using PL/SQL
+For saving files to DB you can use a PL/SQL function like this (Default):
 
 ```language-sql
 DECLARE
@@ -84,8 +94,8 @@ DECLARE
   --
 BEGIN
   -- get defaults from AJAX Process
-  l_filename  := apex_application.g_x01;
-  l_mime_type := nvl(apex_application.g_x02,
+  l_filename  := apex_application.g_x02;
+  l_mime_type := nvl(apex_application.g_x03,
                      'application/octet-stream');
   -- random file id
   l_random_file_id := round(dbms_random.value(100000,
@@ -134,6 +144,44 @@ SELECT c001    AS filename,
        blob001 AS file_content
   FROM apex_collections
  WHERE collection_name = 'DROPZONE_UPLOAD';
+ ```
+
+#### Delete file from DB using PL/SQL
+For deleting files from DB you can use a PL/SQL function like this (Default):
+
+ ```language-sql
+ DECLARE
+   --
+   l_collection_name VARCHAR2(100);
+   l_filename        VARCHAR2(200);
+   l_coll_seq_id     NUMBER;
+   --
+   CURSOR l_cur_files IS
+     SELECT apex_collections.seq_id
+       FROM apex_collections
+      WHERE apex_collections.collection_name = l_collection_name
+        AND apex_collections.c001 = l_filename;
+   --
+ BEGIN
+   -- get defaults from AJAX Process
+   l_filename := apex_application.g_x02;
+   -- collection name
+   l_collection_name := 'DROPZONE_UPLOAD';
+   -- check if collection exist
+   IF apex_collection.collection_exists(p_collection_name => l_collection_name) THEN
+     -- get seq_id from files collection
+     OPEN l_cur_files;
+     FETCH l_cur_files
+       INTO l_coll_seq_id;
+     CLOSE l_cur_files;
+     -- delete collection member (only if Seq-ID not null)
+     IF l_coll_seq_id IS NOT NULL THEN
+       apex_collection.delete_member(p_collection_name => l_collection_name,
+                                     p_seq             => l_coll_seq_id);
+     END IF;
+   END IF;
+   --
+ END;
  ```
 
 ## Hint for ORDS and Tomcat users

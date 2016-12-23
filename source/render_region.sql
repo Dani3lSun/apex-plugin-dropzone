@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.9.4 (31.08.2016)
+ * Version: 1.9.5 (24.12.2016)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -30,6 +30,9 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_dz_style              VARCHAR2(100) := p_region.attribute_19;
   l_callback_event        VARCHAR(50) := p_region.attribute_20;
   l_callback_fnc          VARCHAR(4000) := p_region.attribute_21;
+  l_delete_files          VARCHAR(50) := p_region.attribute_22;
+  l_cancel_upload_message VARCHAR(500) := p_region.attribute_24;
+  l_remove_file_message   VARCHAR(500) := p_region.attribute_25;
   -- other variables
   l_region_id              VARCHAR2(200);
   l_width_esc              VARCHAR2(50);
@@ -77,6 +80,8 @@ BEGIN
                                  'false');
   l_wait_time_ms          := nvl(l_wait_time_ms,
                                  600);
+  l_delete_files          := nvl(l_delete_files,
+                                 'false');
   l_parallel_uploads      := nvl(l_parallel_uploads,
                                  1);
   IF l_parallel_uploads > 2 THEN
@@ -84,14 +89,18 @@ BEGIN
   ELSIF l_parallel_uploads = 0 THEN
     l_parallel_uploads := 1;
   END IF;
-  l_common_file_preview := nvl(l_common_file_preview,
-                               'true');
-  l_filetoobig_message  := nvl(l_filetoobig_message,
-                               'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
-  l_maxfiles_message    := nvl(l_maxfiles_message,
-                               'You can not upload more than {{maxFiles}} files.');
-  l_logging             := nvl(l_logging,
-                               'false');
+  l_common_file_preview   := nvl(l_common_file_preview,
+                                 'true');
+  l_filetoobig_message    := nvl(l_filetoobig_message,
+                                 'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
+  l_maxfiles_message      := nvl(l_maxfiles_message,
+                                 'You can not upload more than {{maxFiles}} files.');
+  l_cancel_upload_message := nvl(l_cancel_upload_message,
+                                 'Cancel upload');
+  l_remove_file_message   := nvl(l_remove_file_message,
+                                 'Remove file');
+  l_logging               := nvl(l_logging,
+                                 'false');
   -- escape input
   l_width_esc              := sys.htf.escape_sc(l_width);
   l_height_esc             := sys.htf.escape_sc(l_height);
@@ -167,6 +176,12 @@ BEGIN
                                                                           l_parallel_uploads) ||
                                             apex_javascript.add_attribute('commonFilePreview',
                                                                           l_common_file_preview) ||
+                                            apex_javascript.add_attribute('deleteFiles',
+                                                                          l_delete_files) ||
+                                            apex_javascript.add_attribute('cancelUploadMessage',
+                                                                          l_cancel_upload_message) ||
+                                            apex_javascript.add_attribute('removeFileMessage',
+                                                                          l_remove_file_message) ||
                                             apex_javascript.add_attribute('callbackEvent',
                                                                           l_callback_event) ||
                                             apex_javascript.add_attribute('callbackFnc',
@@ -197,13 +212,28 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   RETURN apex_plugin.t_region_ajax_result IS
   --
   -- plugin attributes
-  l_result apex_plugin.t_region_ajax_result;
-  l_plsql  p_region.attribute_07%TYPE := p_region.attribute_07;
+  l_result       apex_plugin.t_region_ajax_result;
+  l_upload_plsql p_region.attribute_07%TYPE := p_region.attribute_07;
+  l_delete_plsql p_region.attribute_23%TYPE := p_region.attribute_23;
+  l_delete_files p_region.attribute_22%TYPE := p_region.attribute_22;
+  l_type         VARCHAR2(50);
   --
 BEGIN
-  -- execute PL/SQL
-  apex_plugin_util.execute_plsql_code(p_plsql_code => l_plsql);
+  l_type         := nvl(apex_application.g_x01,
+                        'UPLOAD');
+  l_delete_files := nvl(l_delete_files,
+                        'false');
+  -- Upload
+  IF l_type = 'UPLOAD' THEN
+    -- execute PL/SQL
+    apex_plugin_util.execute_plsql_code(p_plsql_code => l_upload_plsql);
+  END IF;
   --
+  -- Delete File
+  IF l_type = 'DELETE' AND l_delete_files = 'true' THEN
+    -- execute PL/SQL
+    apex_plugin_util.execute_plsql_code(p_plsql_code => l_delete_plsql);
+  END IF;
   --
   RETURN NULL;
   --

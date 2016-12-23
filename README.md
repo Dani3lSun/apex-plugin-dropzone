@@ -4,7 +4,7 @@ It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ## Changelog
 #### 1.9.5 - fully compatible with APEX 5.1 / Delete files inside Dropzone / General Code Cleanup / New Plugin Events
-*Update Note: It may be required to renew the* **PL/SQL Code (Upload)** *to the default which is shipped with this plugin. Unfortunately Plugin Attributes are not updated automatically.*
+*Update Note: It may be required to renew the PL/SQL Code (Upload) to the default which is shipped with this plugin. Unfortunately Plugin Attributes are not updated automatically.*
 
 #### 1.9.4 - updated dropzone library to 4.3.0 / added a much more detailed upload progress bar per file
 

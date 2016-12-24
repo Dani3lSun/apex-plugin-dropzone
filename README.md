@@ -3,7 +3,7 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ## Changelog
-#### 1.9.5 - fully compatible with APEX 5.1 / Delete files inside Dropzone / General Code Cleanup / New Plugin Events
+#### 1.9.5 - fully compatible with APEX 5.1 / Delete files inside Dropzone / General Code Cleanup / New Plugin Events / Float number as max Filesize
 *Update Note: It may be required to renew the PL/SQL Code (Upload) to the default which is shipped with this plugin. Unfortunately Plugin Attributes are not updated automatically.*
 
 #### 1.9.4 - updated dropzone library to 4.3.0 / added a much more detailed upload progress bar per file
@@ -69,12 +69,12 @@ The plugin settings are highly customizable and you can change:
 - **Logging** - Whether to log events in the console
 
 ## Plugin Events
-- **Dropzone added file** - DA event that fires when a file gets added to the dropzone area
+- **Dropzone added file** - DA event that fires when a single file was added to the dropzone area
 - **Dropzone upload completed** - DA event that fires when uploading all files completed
-- **Dropzone upload file success** - DA event that fires when uploading all files completed
-- **Dropzone upload file error** - DA event that fires when uploading all files completed
-- **Dropzone delete file success** - DA event that fires when uploading all files completed
-- **Dropzone delete file error** - DA event that fires when uploading all files completed
+- **Dropzone upload file success** - DA event that fires when uploading a single files was successful (AJAX)
+- **Dropzone upload file error** - DA event that fires when uploading a single files had an error (AJAX)
+- **Dropzone delete file success** - DA event that fires when deleting a single files was successful (AJAX)
+- **Dropzone delete file error** - DA event that fires when deleting a single files has an error (AJAX)
 
 ## How to use
 - Create a Dropzone region on target page

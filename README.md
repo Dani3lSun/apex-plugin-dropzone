@@ -198,7 +198,8 @@ For HTTP connector:
 <Connector port="8080" protocol="HTTP/1.1" connectionTimeout="20000" redirectPort="8443" address="127.0.0.1" maxPostSize="15728640" />
 ```
 
-This example sets maxPostSize to 15MB or 15728640 bytes.
+This example sets maxPostSize to 15MB or 15728640 bytes. Setting the maxPostSize attribute to a value less than zero (e.g -1) disables the whole limitation.
+More about it in the [Tomcat 8 Documentation](https://tomcat.apache.org/tomcat-8.0-doc/config/http.html#Attributes)
 
 ## Demo Application
 https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN

@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone Apex Plugin
- * Version: 1.9.5 (24.12.2016)
+ * Version: 1.9.6 (28.12.2016)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -15,7 +15,6 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_max_filesize_mb       NUMBER := p_region.attribute_04;
   l_dz_clickable          VARCHAR2(50) := p_region.attribute_05;
   l_items_submit          VARCHAR(1000) := p_region.attribute_06;
-  l_plsql                 p_region.attribute_07%TYPE := p_region.attribute_07;
   l_logging               VARCHAR(50) := p_region.attribute_08;
   l_remove_uploaded_files VARCHAR(50) := p_region.attribute_09;
   l_accepted_files        VARCHAR(1000) := p_region.attribute_10;
@@ -235,6 +234,6 @@ BEGIN
     apex_plugin_util.execute_plsql_code(p_plsql_code => l_delete_plsql);
   END IF;
   --
-  RETURN NULL;
+  RETURN l_result;
   --
 END ajax_dropzone;

@@ -3,6 +3,9 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ## Changelog
+#### 1.9.6 - fixed issue #15 (Page Items to Submit) / Added new event "Dropzone max files exceeded" (issue #13)
+*Update Note from v1.9.5: It may be required to renew the PL/SQL Code (Upload) to the default which is shipped with this plugin. Unfortunately Plugin Attributes are not updated automatically.*
+
 #### 1.9.5 - fully compatible with APEX 5.1 / Delete files inside Dropzone / General Code Cleanup / New Plugin Events / Float number as max Filesize
 *Update Note: It may be required to renew the PL/SQL Code (Upload) to the default which is shipped with this plugin. Unfortunately Plugin Attributes are not updated automatically.*
 

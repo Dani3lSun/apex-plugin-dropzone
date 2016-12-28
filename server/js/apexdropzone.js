@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 1.9.5
+// Version: 1.9.6
 
 // global namespace
 var apexDropzone = {
@@ -48,7 +48,7 @@ var apexDropzone = {
         return btoa(data);
     },
     // sleep function (hack to ensure server gets right file (lot of small files))
-    sleep_until: function(pMillseconds) {
+    sleepUntil: function(pMillseconds) {
         var vMaxSec = new Date().getTime();
         while (new Date() < vMaxSec + pMillseconds) {}
         return true;
@@ -80,7 +80,7 @@ var apexDropzone = {
     buildPageItemValuesArray: function(pPageItemsArray) {
         var vArrayPageItemValues = [];
         for (var i = 0; i < pPageItemsArray.length; i++) {
-            vArrayPageItemValues.push($v(vArrayPageItems[i]));
+            vArrayPageItemValues.push($v(pPageItemsArray[i]));
         }
         return vArrayPageItemValues;
     },
@@ -131,17 +131,23 @@ var apexDropzone = {
                             // SUCCESS function
                             success: function(pData) {
                                 //sleep hack for large number of small files
-                                apexDropzone.sleep_until(pWaitTime);
-                                // APEX event
+                                apexDropzone.sleepUntil(pWaitTime);
+                                // if DB SQL error
                                 if (pData.indexOf('sqlerrm') >= 0) {
+                                    // APEX event
                                     apex.event.trigger('#' + pRegionId, 'dropzone-upload-error', pData);
+                                    // file status
+                                    file.status = Dropzone.ERROR;
+                                    pDropzone.emit("error", file, "Database error during file upload");
                                 } else {
+                                    // APEX event
                                     apex.event.trigger('#' + pRegionId, 'dropzone-upload-success', pData);
+                                    // file status
+                                    file.status = Dropzone.SUCCESS;
+                                    pDropzone.emit("success", file, 'success', null);
                                 }
                                 // set file status SUCCESS / UPLOAD 100%
                                 pDropzone.emit('uploadprogress', file, 100, file.size);
-                                file.status = Dropzone.SUCCESS;
-                                pDropzone.emit("success", file, 'success', null);
                                 pDropzone.emit("complete", file);
                                 // process file queue
                                 pDropzone.processQueue();
@@ -149,17 +155,17 @@ var apexDropzone = {
                             // ERROR function
                             error: function(xhr, pMessage) {
                                 //sleep hack for large number of small files
-                                apexDropzone.sleep_until(pWaitTime);
+                                apexDropzone.sleepUntil(pWaitTime);
                                 // APEX event
                                 apex.event.trigger('#' + pRegionId, 'dropzone-upload-error', pMessage);
                                 // set file status ERROR
                                 file.status = Dropzone.ERROR;
                                 // build message for error template
                                 var message = "";
-                                if (pMessage === null || pMessage === undefined) {
-                                    message = 'Error processing file.';
-                                } else {
+                                if (pMessage) {
                                     message = pMessage;
+                                } else {
+                                    message = 'Error processing file';
                                 }
                                 pDropzone.emit("error", file, message, xhr);
                                 pDropzone.emit("complete", file);
@@ -182,7 +188,7 @@ var apexDropzone = {
                         // if file not found: process queue
                     } else {
                         //sleep hack for large number of small files
-                        apexDropzone.sleep_until(pWaitTime);
+                        apexDropzone.sleepUntil(pWaitTime);
                         pDropzone.processQueue();
                     }
                 };
@@ -278,31 +284,24 @@ var apexDropzone = {
         }
         // DROPZONE
         Dropzone.autoDiscover = false;
-        var myDropzone = new Dropzone('div#' + vRegion,
+        var myDropzone = new Dropzone('div#' + vRegion, {
             // NOT USED: required params, but uploading function uses plugin process
-            {
-                paramName: "p_clob_01",
-                url: "wwv_flow.show",
-                params: {
-                    p_instance: $v('pInstance'),
-                    p_flow_id: $v('pFlowId'),
-                    p_flow_step_id: $v('pFlowStepId')
-                },
-                // dropzone parameters
-                addRemoveLinks: vDeleteFiles,
-                parallelUploads: vParallelUploads,
-                uploadMultiple: false,
-                autoProcessQueue: true,
-                maxFilesize: vMaxFileSize,
-                dictDefaultMessage: vOptions.defaultMessage,
-                clickable: vClickable,
-                maxFiles: vMaxFiles,
-                acceptedFiles: vOptions.acceptedFiles,
-                dictFileTooBig: vOptions.fileTooBigMessage,
-                dictMaxFilesExceeded: vOptions.maxFilesMessage,
-                dictCancelUpload: vOptions.cancelUploadMessage,
-                dictRemoveFile: vOptions.removeFileMessage
-            });
+            url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
+            // dropzone parameters
+            addRemoveLinks: vDeleteFiles,
+            parallelUploads: vParallelUploads,
+            uploadMultiple: false,
+            autoProcessQueue: true,
+            maxFilesize: vMaxFileSize,
+            dictDefaultMessage: vOptions.defaultMessage,
+            clickable: vClickable,
+            maxFiles: vMaxFiles,
+            acceptedFiles: vOptions.acceptedFiles,
+            dictFileTooBig: vOptions.fileTooBigMessage,
+            dictMaxFilesExceeded: vOptions.maxFilesMessage,
+            dictCancelUpload: vOptions.cancelUploadMessage,
+            dictRemoveFile: vOptions.removeFileMessage
+        });
         // disable clickable element
         if (!(vClickable)) {
             $('.dz-hidden-input').prop('disabled', true);
@@ -363,6 +362,11 @@ var apexDropzone = {
                     console.log(err);
                 }
             }
+        });
+        // After maxFiles exceeded event
+        myDropzone.on('maxfilesexceeded', function(file) {
+            // add apex event
+            apex.event.trigger('#' + pRegionId, 'dropzone-maxfiles-exceeded', file);
         });
         // After complete: apex event / callback event / clear dropzone data / refresh region
         myDropzone.on("complete", function() {

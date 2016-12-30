@@ -95,19 +95,19 @@ The plugin settings are highly customizable and you can change:
 
 - **Upload Mechanism**
 
-##### Normal
-  - **AJAX:** Async Method
+  - **Normal**
+    - **AJAX:** Async Method
 
-  - **Description:**
+    - **Description:**
 
-  - This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the "maxPostSize" Parameter have to be increased on Tomcat Servers (Default 2MB).
+    - This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the **maxPostSize** Parameter have to be increased on Tomcat Servers (Default 2MB).
 
-##### Chunked
-  - **AJAX:** Sync Method
+  - **Chunked**
+    - **AJAX:** Sync Method
 
-  - **Description:**
+    - **Description:**
 
-  - This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
+    - This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
 
 - **Delete Files**
 
@@ -151,7 +151,7 @@ The plugin settings are highly customizable and you can change:
 
 - **Show File Previews**
 
-  - Show Preview Images for common File types when adding files. Image-Files got displayed with real content. If you want to add more images or others just Copy/Upload the PNG Files to *img* directory. Naming: **<file-extension>.png**
+  - Show Preview Images for common File types when adding files. Image-Files got displayed with real content. If you want to add more images or others just Copy/Upload the PNG Files to *img* directory. Naming: **\<file-extension\>.png**
 
 - **Copy & Paste Support**
 

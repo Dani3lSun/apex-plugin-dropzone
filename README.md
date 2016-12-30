@@ -4,7 +4,7 @@ It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ## Changelog
 
-### 2.0.0 - Complete new Version built from ground up new. Now much easier to use and with more features
+### 2.0.0 - Complete new Version built from ground up. Now much easier to use and with more features
 
 - Choose where to save the Files (APEX Collection or Custom Table)
 - No more writing of custom PL/SQL Code inside the Plugin (much more Update save)
@@ -12,6 +12,7 @@ It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 - Choose the Upload Method (Normal (1 Request) or Chunked (Multiple Requests))
 - Improved Error Handling and Logging for the whole AJAX based Upload Process
 - Possibility to delete Files which were accidentally uploaded to the Server
+- Better Documentation on Github and in the Plugin Attribute Help
 - Much better Internationalization and App Wide definition of Messages
 - And of course all the "old" Features as well
 
@@ -98,14 +99,10 @@ The plugin settings are highly customizable and you can change:
   - **Normal**
     - **AJAX:** Async Method
 
-    - **Description:**
-
     - This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the **maxPostSize** Parameter have to be increased on Tomcat Servers (Default 2MB).
 
   - **Chunked**
     - **AJAX:** Sync Method
-
-    - **Description:**
 
     - This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
 

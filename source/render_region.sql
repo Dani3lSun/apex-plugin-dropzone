@@ -1,6 +1,6 @@
 /*-------------------------------------
- * Dropzone Apex Plugin
- * Version: 1.9.6 (28.12.2016)
+ * Dropzone APEX Plugin
+ * Version: 2.0.0 (30.12.2016)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -8,43 +8,37 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
                          p_plugin              IN apex_plugin.t_plugin,
                          p_is_printer_friendly IN BOOLEAN)
   RETURN apex_plugin.t_region_render_result IS
+  --
+  l_result apex_plugin.t_region_render_result;
+  -- region attributes
+  l_dz_style              p_region.attribute_07%TYPE := p_region.attribute_07;
+  l_width                 p_region.attribute_08%TYPE := p_region.attribute_08;
+  l_height                p_region.attribute_09%TYPE := p_region.attribute_09;
+  l_max_filesize          NUMBER := p_region.attribute_10;
+  l_max_files             NUMBER := p_region.attribute_11;
+  l_parallel_uploads      NUMBER := p_region.attribute_12;
+  l_accepted_files        p_region.attribute_13%TYPE := p_region.attribute_13;
+  l_wait_time             NUMBER := p_region.attribute_14;
+  l_upload_mechanism      p_region.attribute_15%TYPE := p_region.attribute_15;
+  l_dz_clickable          p_region.attribute_16%TYPE := p_region.attribute_16;
+  l_show_file_preview     p_region.attribute_17%TYPE := p_region.attribute_17;
+  l_copy_paste_support    p_region.attribute_18%TYPE := p_region.attribute_18;
+  l_remove_uploaded_files p_region.attribute_19%TYPE := p_region.attribute_19;
+  l_delete_files          p_region.attribute_20%TYPE := p_region.attribute_20;
   -- plugin attributes
-  l_width                 VARCHAR2(50) := p_region.attribute_01;
-  l_height                VARCHAR2(50) := p_region.attribute_02;
-  l_display_message       VARCHAR2(500) := p_region.attribute_03;
-  l_max_filesize_mb       NUMBER := p_region.attribute_04;
-  l_dz_clickable          VARCHAR2(50) := p_region.attribute_05;
-  l_items_submit          VARCHAR(1000) := p_region.attribute_06;
-  l_logging               VARCHAR(50) := p_region.attribute_08;
-  l_remove_uploaded_files VARCHAR(50) := p_region.attribute_09;
-  l_accepted_files        VARCHAR(1000) := p_region.attribute_10;
-  l_filetoobig_message    VARCHAR(500) := p_region.attribute_11;
-  l_maxfiles_message      VARCHAR(500) := p_region.attribute_12;
-  l_max_files             NUMBER := p_region.attribute_13;
-  l_refresh_regionid      VARCHAR(100) := p_region.attribute_14;
-  l_copy_paste_support    VARCHAR(50) := p_region.attribute_15;
-  l_wait_time_ms          NUMBER := p_region.attribute_16;
-  l_parallel_uploads      NUMBER := p_region.attribute_17;
-  l_common_file_preview   VARCHAR(50) := p_region.attribute_18;
-  l_dz_style              VARCHAR2(100) := p_region.attribute_19;
-  l_callback_event        VARCHAR(50) := p_region.attribute_20;
-  l_callback_fnc          VARCHAR(4000) := p_region.attribute_21;
-  l_delete_files          VARCHAR(50) := p_region.attribute_22;
-  l_cancel_upload_message VARCHAR(500) := p_region.attribute_24;
-  l_remove_file_message   VARCHAR(500) := p_region.attribute_25;
+  l_display_message            p_plugin.attribute_01%TYPE := p_plugin.attribute_01;
+  l_fallback_message           p_plugin.attribute_02%TYPE := p_plugin.attribute_02;
+  l_filetoobig_message         p_plugin.attribute_03%TYPE := p_plugin.attribute_03;
+  l_maxfiles_message           p_plugin.attribute_04%TYPE := p_plugin.attribute_04;
+  l_remove_file_message        p_plugin.attribute_05%TYPE := p_plugin.attribute_05;
+  l_cancel_upload_message      p_plugin.attribute_06%TYPE := p_plugin.attribute_06;
+  l_cancel_upl_confirm_message p_plugin.attribute_07%TYPE := p_plugin.attribute_07;
+  l_invalid_filetype_message   p_plugin.attribute_08%TYPE := p_plugin.attribute_08;
   -- other variables
-  l_region_id              VARCHAR2(200);
-  l_width_esc              VARCHAR2(50);
-  l_height_esc             VARCHAR2(50);
-  l_display_message_esc    VARCHAR2(500);
-  l_filetoobig_message_esc VARCHAR2(500);
-  l_maxfiles_message_esc   VARCHAR2(500);
-  l_refresh_regionid_esc   VARCHAR(100);
+  l_region_id VARCHAR2(200);
+  l_dz_class  VARCHAR2(50);
   -- js/css file vars
-  l_apexdropzone_js VARCHAR2(50);
-  l_dropzone_js     VARCHAR2(50);
-  l_dropzone_css    VARCHAR2(50);
-  l_filereader_js   VARCHAR2(50);
+  l_filereader_js VARCHAR2(50);
   --
 BEGIN
   -- Debug
@@ -52,90 +46,49 @@ BEGIN
     apex_plugin_util.debug_region(p_plugin => p_plugin,
                                   p_region => p_region);
     -- set js/css filenames
-    l_apexdropzone_js := 'apexdropzone';
-    l_dropzone_js     := 'dropzone';
-    l_dropzone_css    := 'dropzone';
-    l_filereader_js   := 'filereader';
+    l_filereader_js := 'filereader';
   ELSE
-    l_apexdropzone_js := 'apexdropzone.min';
-    l_dropzone_js     := 'dropzone.min';
-    l_dropzone_css    := 'dropzone.min';
-    l_filereader_js   := 'filereader.min';
+    l_filereader_js := 'filereader.min';
   END IF;
   -- set variables and defaults
-  l_region_id             := apex_escape.html_attribute(p_region.static_id ||
-                                                        '_dropzone');
-  l_dz_style              := nvl(l_dz_style,
-                                 'STYLE1');
-  l_max_filesize_mb       := nvl(l_max_filesize_mb,
-                                 2);
-  l_dz_clickable          := nvl(l_dz_clickable,
-                                 'true');
-  l_remove_uploaded_files := nvl(l_remove_uploaded_files,
-                                 'false');
-  l_max_files             := nvl(l_max_files,
-                                 256);
-  l_copy_paste_support    := nvl(l_copy_paste_support,
-                                 'false');
-  l_wait_time_ms          := nvl(l_wait_time_ms,
-                                 600);
-  l_delete_files          := nvl(l_delete_files,
-                                 'false');
-  l_parallel_uploads      := nvl(l_parallel_uploads,
-                                 1);
+  l_region_id := apex_escape.html_attribute(p_region.static_id ||
+                                            '_dropzone');
+  l_max_files := nvl(l_max_files,
+                     256);
   IF l_parallel_uploads > 2 THEN
     l_parallel_uploads := 2;
   ELSIF l_parallel_uploads = 0 THEN
     l_parallel_uploads := 1;
   END IF;
-  l_common_file_preview   := nvl(l_common_file_preview,
-                                 'true');
-  l_filetoobig_message    := nvl(l_filetoobig_message,
-                                 'File is too big ({{filesize}}MiB). Max filesize: {{maxFilesize}}MiB.');
-  l_maxfiles_message      := nvl(l_maxfiles_message,
-                                 'You can not upload more than {{maxFiles}} files.');
-  l_cancel_upload_message := nvl(l_cancel_upload_message,
-                                 'Cancel upload');
-  l_remove_file_message   := nvl(l_remove_file_message,
-                                 'Remove file');
-  l_logging               := nvl(l_logging,
-                                 'false');
   -- escape input
-  l_width_esc              := sys.htf.escape_sc(l_width);
-  l_height_esc             := sys.htf.escape_sc(l_height);
-  l_display_message_esc    := sys.htf.escape_sc(l_display_message);
-  l_filetoobig_message_esc := sys.htf.escape_sc(l_filetoobig_message);
-  l_maxfiles_message_esc   := sys.htf.escape_sc(l_maxfiles_message);
-  l_refresh_regionid_esc   := sys.htf.escape_sc(l_refresh_regionid);
+  l_width                      := apex_escape.html(l_width);
+  l_height                     := apex_escape.html(l_height);
+  l_display_message            := apex_escape.html(l_display_message);
+  l_fallback_message           := apex_escape.html(l_fallback_message);
+  l_filetoobig_message         := apex_escape.html(l_filetoobig_message);
+  l_maxfiles_message           := apex_escape.html(l_maxfiles_message);
+  l_remove_file_message        := apex_escape.html(l_remove_file_message);
+  l_cancel_upload_message      := apex_escape.html(l_cancel_upload_message);
+  l_cancel_upl_confirm_message := apex_escape.html(l_cancel_upl_confirm_message);
+  l_invalid_filetype_message   := apex_escape.html(l_invalid_filetype_message);
   --
   -- add div for dropzone
   -- style 1 (grey border)
   IF l_dz_style = 'STYLE1' THEN
-    sys.htp.p('<div id="' || l_region_id ||
-              '" class="dropzone" style="border:5px solid grey;background: white;width:' ||
-              l_width_esc || ';height:' || l_height_esc ||
-              ';overflow:auto;"></div>');
+    l_dz_class := 'dz-style1';
     -- style 2 (blue dashed border)
   ELSIF l_dz_style = 'STYLE2' THEN
-    sys.htp.p('<div id="' || l_region_id ||
-              '" class="dropzone" style="border: 3px dashed #0087F7;border-radius: 5px;background: white;width:' ||
-              l_width_esc || ';height:' || l_height_esc ||
-              ';overflow:auto;"></div>');
+    l_dz_class := 'dz-style2';
+    -- style 2 (red dashed border)
+  ELSIF l_dz_style = 'STYLE3' THEN
+    l_dz_class := 'dz-style3';
   END IF;
   --
-  -- add dropzone js and apexdropzone
-  apex_javascript.add_library(p_name           => l_dropzone_js,
-                              p_directory      => p_plugin.file_prefix ||
-                                                  'js/',
-                              p_version        => NULL,
-                              p_skip_extension => FALSE);
+  htp.p('<div id="' || l_region_id || '" class="dropzone ' || l_dz_class ||
+        '" style="width:' || l_width || ';height:' || l_height ||
+        ';"></div>');
   --
-  apex_javascript.add_library(p_name           => l_apexdropzone_js,
-                              p_directory      => p_plugin.file_prefix ||
-                                                  'js/',
-                              p_version        => NULL,
-                              p_skip_extension => FALSE);
-  -- filereader for Copy&Paste support
+  -- filereader lib for Copy&Paste support
   IF l_copy_paste_support = 'true' THEN
     apex_javascript.add_library(p_name           => l_filereader_js,
                                 p_directory      => p_plugin.file_prefix ||
@@ -144,61 +97,56 @@ BEGIN
                                 p_skip_extension => FALSE);
   END IF;
   --
-  -- add dropzone css
-  apex_css.add_file(p_name      => l_dropzone_css,
-                    p_directory => p_plugin.file_prefix || 'css/');
-  --
   -- onload code
   apex_javascript.add_onload_code(p_code => 'apexDropzone.apexDropzoneFnc(' ||
                                             apex_javascript.add_value(p_region.static_id) || '{' ||
-                                            apex_javascript.add_attribute('pageItems',
-                                                                          apex_plugin_util.page_item_names_to_jquery(l_items_submit)) ||
                                             apex_javascript.add_attribute('ajaxIdentifier',
                                                                           apex_plugin.get_ajax_identifier) ||
                                             apex_javascript.add_attribute('maxFilesize',
-                                                                          l_max_filesize_mb) ||
-                                            apex_javascript.add_attribute('clickable',
-                                                                          l_dz_clickable) ||
-                                            apex_javascript.add_attribute('removeAfterUpload',
-                                                                          l_remove_uploaded_files) ||
+                                                                          l_max_filesize) ||
                                             apex_javascript.add_attribute('maxFiles',
                                                                           l_max_files) ||
-                                            apex_javascript.add_attribute('acceptedFiles',
-                                                                          l_accepted_files) ||
-                                            apex_javascript.add_attribute('refreshRegionID',
-                                                                          l_refresh_regionid_esc) ||
-                                            apex_javascript.add_attribute('supportCopyPaste',
-                                                                          l_copy_paste_support) ||
-                                            apex_javascript.add_attribute('waitTime',
-                                                                          l_wait_time_ms) ||
                                             apex_javascript.add_attribute('parallelUploads',
                                                                           l_parallel_uploads) ||
-                                            apex_javascript.add_attribute('commonFilePreview',
-                                                                          l_common_file_preview) ||
+                                            apex_javascript.add_attribute('acceptedFiles',
+                                                                          l_accepted_files) ||
+                                            apex_javascript.add_attribute('waitTime',
+                                                                          l_wait_time) ||
+                                            apex_javascript.add_attribute('uploadMechanism',
+                                                                          l_upload_mechanism) ||
+                                            apex_javascript.add_attribute('clickable',
+                                                                          l_dz_clickable) ||
+                                            apex_javascript.add_attribute('showFilePreview',
+                                                                          l_show_file_preview) ||
+                                            apex_javascript.add_attribute('supportCopyPaste',
+                                                                          l_copy_paste_support) ||
+                                            apex_javascript.add_attribute('removeAfterUpload',
+                                                                          l_remove_uploaded_files) ||
                                             apex_javascript.add_attribute('deleteFiles',
                                                                           l_delete_files) ||
-                                            apex_javascript.add_attribute('cancelUploadMessage',
-                                                                          l_cancel_upload_message) ||
-                                            apex_javascript.add_attribute('removeFileMessage',
-                                                                          l_remove_file_message) ||
-                                            apex_javascript.add_attribute('callbackEvent',
-                                                                          l_callback_event) ||
-                                            apex_javascript.add_attribute('callbackFnc',
-                                                                          l_callback_fnc) ||
                                             apex_javascript.add_attribute('pluginPrefix',
                                                                           p_plugin.file_prefix) ||
-                                            apex_javascript.add_attribute('defaultMessage',
-                                                                          l_display_message_esc) ||
+                                            apex_javascript.add_attribute('displayMessage',
+                                                                          l_display_message) ||
+                                            apex_javascript.add_attribute('fallbackMessage',
+                                                                          l_fallback_message) ||
                                             apex_javascript.add_attribute('fileTooBigMessage',
-                                                                          l_filetoobig_message_esc) ||
+                                                                          l_filetoobig_message) ||
                                             apex_javascript.add_attribute('maxFilesMessage',
-                                                                          l_maxfiles_message_esc,
+                                                                          l_maxfiles_message) ||
+                                            apex_javascript.add_attribute('removeFileMessage',
+                                                                          l_remove_file_message) ||
+                                            apex_javascript.add_attribute('cancelUploadMessage',
+                                                                          l_cancel_upload_message) ||
+                                            apex_javascript.add_attribute('cancelUploadConfirmMessage',
+                                                                          l_cancel_upl_confirm_message) ||
+                                            apex_javascript.add_attribute('invalidFileTypeMessage',
+                                                                          l_invalid_filetype_message,
                                                                           FALSE,
-                                                                          FALSE) || '},' ||
-                                            apex_javascript.add_value(l_logging,
-                                                                      FALSE) || ');');
+                                                                          FALSE) ||
+                                            '});');
   --
-  RETURN NULL;
+  RETURN l_result;
   --
 END render_dropzone;
 --
@@ -210,30 +158,346 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
                        p_plugin IN apex_plugin.t_plugin)
   RETURN apex_plugin.t_region_ajax_result IS
   --
-  -- plugin attributes
-  l_result       apex_plugin.t_region_ajax_result;
-  l_upload_plsql p_region.attribute_07%TYPE := p_region.attribute_07;
-  l_delete_plsql p_region.attribute_23%TYPE := p_region.attribute_23;
-  l_delete_files p_region.attribute_22%TYPE := p_region.attribute_22;
-  l_type         VARCHAR2(50);
+  l_result apex_plugin.t_region_ajax_result;
+  -- region attributes
+  l_storage_type     p_region.attribute_01%TYPE := p_region.attribute_01;
+  l_table_coll_name  p_region.attribute_02%TYPE := p_region.attribute_02;
+  l_filename_column  p_region.attribute_03%TYPE := p_region.attribute_03;
+  l_mimetype_column  p_region.attribute_04%TYPE := p_region.attribute_04;
+  l_blob_column      p_region.attribute_05%TYPE := p_region.attribute_05;
+  l_date_column      p_region.attribute_06%TYPE := p_region.attribute_06;
+  l_upload_mechanism p_region.attribute_15%TYPE := p_region.attribute_15;
+  l_delete_files     p_region.attribute_20%TYPE := p_region.attribute_20;
+  -- other variables
+  l_type                VARCHAR2(50);
+  l_chunked_temp_coll   VARCHAR2(100);
+  l_blob                BLOB;
+  l_filename            VARCHAR2(200);
+  l_mime_type           VARCHAR2(100);
+  l_token               VARCHAR2(32000);
+  l_random_file_id      NUMBER;
+  l_insert_sql          VARCHAR2(32767);
+  l_delete_sql          VARCHAR2(32767);
+  l_coll_seq_id         NUMBER;
+  l_current_chunk_count NUMBER;
+  l_total_chunk_count   NUMBER;
+  l_chunk_clob          CLOB;
+  l_final_clob          CLOB;
+  -- cursor for files to delete
+  CURSOR l_cur_delete_files IS
+    SELECT apex_collections.seq_id
+      FROM apex_collections
+     WHERE upper(apex_collections.collection_name) = l_table_coll_name
+       AND apex_collections.c001 = l_filename;
+  -- cursor for file chunks
+  CURSOR l_cur_chunk_files IS
+    SELECT apex_collections.clob001 AS chunk_clob
+      FROM apex_collections
+     WHERE upper(apex_collections.collection_name) = l_chunked_temp_coll
+       AND apex_collections.c001 = l_filename
+       AND apex_collections.n002 = l_total_chunk_count
+     ORDER BY apex_collections.n001;
   --
 BEGIN
-  l_type         := nvl(apex_application.g_x01,
-                        'UPLOAD');
-  l_delete_files := nvl(l_delete_files,
-                        'false');
+  --
+  -- Debug Info
+  apex_debug.info('Dropzone AJAX Parameter x01: ' ||
+                  apex_application.g_x01);
+  apex_debug.info('Dropzone AJAX Parameter x02: ' ||
+                  apex_application.g_x02);
+  apex_debug.info('Dropzone AJAX Parameter x03: ' ||
+                  apex_application.g_x03);
+  apex_debug.info('Dropzone AJAX Parameter x04: ' ||
+                  apex_application.g_x04);
+  apex_debug.info('Dropzone AJAX Parameter x05: ' ||
+                  apex_application.g_x05);
+  apex_debug.info('Dropzone AJAX Parameter p_clob_01(length): ' ||
+                  dbms_lob.getlength(apex_application.g_clob_01));
+  --
+  --
+  l_type            := nvl(apex_application.g_x01,
+                           'UPLOAD');
+  l_table_coll_name := upper(l_table_coll_name);
+  --
   -- Upload
+  --
   IF l_type = 'UPLOAD' THEN
-    -- execute PL/SQL
-    apex_plugin_util.execute_plsql_code(p_plsql_code => l_upload_plsql);
+    --
+    -- Chunked 1MB file upload / chunks in temp collection (multiple server requests (per file chunk))
+    IF l_upload_mechanism = 'CHUNKED' THEN
+      BEGIN
+        l_chunked_temp_coll := l_table_coll_name || '_TEMP';
+        -- get defaults from AJAX Process
+        l_filename            := apex_application.g_x02;
+        l_mime_type           := nvl(apex_application.g_x03,
+                                     'application/octet-stream');
+        l_current_chunk_count := to_number(apex_application.g_x04);
+        l_total_chunk_count   := to_number(apex_application.g_x05) - 1;
+        l_chunk_clob          := apex_application.g_clob_01;
+        -- check if temp collection exist
+        IF NOT
+            apex_collection.collection_exists(p_collection_name => l_chunked_temp_coll) THEN
+          apex_collection.create_collection(l_chunked_temp_coll);
+        END IF;
+        -- add collection member (only if l_chunk_clob not null)
+        IF dbms_lob.getlength(l_chunk_clob) IS NOT NULL THEN
+          apex_collection.add_member(p_collection_name => l_chunked_temp_coll,
+                                     p_c001            => l_filename, -- filename
+                                     p_c002            => l_mime_type, -- mime_type
+                                     p_n001            => l_current_chunk_count, -- current count from JS loop
+                                     p_n002            => l_total_chunk_count, -- total count of all chunks
+                                     p_clob001         => l_chunk_clob); -- CLOB base64 file chunk content
+        END IF;
+        -- last file chunk peace
+        IF l_current_chunk_count = l_total_chunk_count THEN
+          dbms_lob.createtemporary(l_final_clob,
+                                   FALSE,
+                                   dbms_lob.session);
+          -- loop over all file chunks and build final file
+          FOR l_rec_chunk_files IN l_cur_chunk_files LOOP
+            IF dbms_lob.getlength(l_rec_chunk_files.chunk_clob) IS NOT NULL THEN
+              dbms_lob.append(l_final_clob,
+                              l_rec_chunk_files.chunk_clob);
+            END IF;
+          END LOOP;
+          -- delete temp collection
+          IF apex_collection.collection_exists(p_collection_name => l_chunked_temp_coll) THEN
+            apex_collection.delete_collection(p_collection_name => l_chunked_temp_coll);
+          END IF;
+          -- build final blob from base64 clob
+          IF dbms_lob.getlength(l_final_clob) IS NOT NULL THEN
+            l_blob := apex_web_service.clobbase642blob(p_clob => l_final_clob);
+          END IF;
+        END IF;
+        -- status
+        htp.init;
+        htp.p('{ "status": "success", "message": "File Chunk ' ||
+              l_current_chunk_count || ' of ' || l_total_chunk_count ||
+              ' for ' || l_filename ||
+              ' successfully saved to Temp. APEX Collection ' ||
+              l_chunked_temp_coll || '", "code": "" }');
+        --
+      EXCEPTION
+        WHEN OTHERS THEN
+          -- status
+          htp.init;
+          htp.p('{ "status": "error", "message": "File Chunk ' ||
+                l_current_chunk_count || ' of ' || l_total_chunk_count ||
+                ' for ' || l_filename ||
+                ' NOT saved to Temp. APEX Collection ' ||
+                l_chunked_temp_coll || '", "code": "' ||
+                regexp_replace(SQLERRM || ' ' ||
+                               dbms_utility.format_error_backtrace,
+                               '("|' || chr(10) || '|' || chr(13) || ',")',
+                               '') || '" }');
+      END;
+      --
+      -- normal file upload via f01 array (1 server request)
+    ELSIF l_upload_mechanism = 'NORMAL' THEN
+      BEGIN
+        -- get defaults from AJAX Process
+        l_filename  := apex_application.g_x02;
+        l_mime_type := nvl(apex_application.g_x03,
+                           'application/octet-stream');
+        -- build BLOB from f01 30k Array (base64 encoded)
+        dbms_lob.createtemporary(l_blob,
+                                 FALSE,
+                                 dbms_lob.session);
+        FOR i IN 1 .. apex_application.g_f01.count LOOP
+          l_token := wwv_flow.g_f01(i);
+          IF length(l_token) > 0 THEN
+            dbms_lob.append(l_blob,
+                            to_blob(utl_encode.base64_decode(utl_raw.cast_to_raw(l_token))));
+          END IF;
+        END LOOP;
+        --
+      EXCEPTION
+        WHEN OTHERS THEN
+          -- status
+          htp.init;
+          htp.p('{ "status": "error", "message": "File Upload could not be processed for ' ||
+                l_filename || '", "code": "' ||
+                regexp_replace(SQLERRM || ' ' ||
+                               dbms_utility.format_error_backtrace,
+                               '("|' || chr(10) || '|' || chr(13) || ',")',
+                               '') || '" }');
+      END;
+    END IF;
+    --
+    -- Save to APEX Collection
+    IF l_storage_type = 'COLLECTION' AND
+       dbms_lob.getlength(l_blob) IS NOT NULL THEN
+      BEGIN
+        -- random file id
+        l_random_file_id := round(dbms_random.value(100000,
+                                                    99999999));
+        -- check if collection exist
+        IF NOT
+            apex_collection.collection_exists(p_collection_name => l_table_coll_name) THEN
+          apex_collection.create_collection(l_table_coll_name);
+        END IF;
+        -- add collection member
+        apex_collection.add_member(p_collection_name => l_table_coll_name,
+                                   p_c001            => l_filename, -- filename
+                                   p_c002            => l_mime_type, -- mime_type
+                                   p_d001            => SYSDATE, -- date created
+                                   p_n001            => l_random_file_id, -- random file id
+                                   p_blob001         => l_blob); -- BLOB file content
+        -- status
+        htp.init;
+        htp.p('{ "status": "success", "message": "File ' || l_filename ||
+              ' successfully saved to APEX Collection ' ||
+              l_table_coll_name || '", "code": "" }');
+        --
+      EXCEPTION
+        WHEN OTHERS THEN
+          -- status
+          htp.init;
+          htp.p('{ "status": "error", "message": "File ' || l_filename ||
+                ' NOT saved to APEX Collection ' || l_table_coll_name ||
+                '", "code": "' ||
+                regexp_replace(SQLERRM || ' ' ||
+                               dbms_utility.format_error_backtrace,
+                               '("|' || chr(10) || '|' || chr(13) || ',")',
+                               '') || '" }');
+      END;
+      --
+      -- Save to custom Table
+    ELSIF l_storage_type = 'TABLE' AND
+          dbms_lob.getlength(l_blob) IS NOT NULL THEN
+      BEGIN
+        -- dynamic insert statement
+        -- without optional date column
+        IF l_date_column IS NULL THEN
+          l_insert_sql := 'INSERT INTO ' ||
+                          dbms_assert.sql_object_name(l_table_coll_name) || '( ' ||
+                          dbms_assert.simple_sql_name(l_filename_column) || ', ' ||
+                          dbms_assert.simple_sql_name(l_mimetype_column) || ', ' ||
+                          dbms_assert.simple_sql_name(l_blob_column) ||
+                          ') VALUES (:filename_value,:mimetype_value,:blob_value)';
+          -- execute insert
+          EXECUTE IMMEDIATE l_insert_sql
+            USING l_filename, l_mime_type, l_blob;
+          -- with optional date column
+        ELSE
+          l_insert_sql := 'INSERT INTO ' ||
+                          dbms_assert.sql_object_name(l_table_coll_name) || '( ' ||
+                          dbms_assert.simple_sql_name(l_filename_column) || ', ' ||
+                          dbms_assert.simple_sql_name(l_mimetype_column) || ', ' ||
+                          dbms_assert.simple_sql_name(l_blob_column) || ', ' ||
+                          dbms_assert.simple_sql_name(l_date_column) ||
+                          ') VALUES (:filename_value,:mimetype_value,:blob_value,:date_value)';
+          -- execute insert
+          EXECUTE IMMEDIATE l_insert_sql
+            USING l_filename, l_mime_type, l_blob, SYSDATE;
+        END IF;
+        -- status
+        htp.init;
+        htp.p('{ "status": "success", "message": "File ' || l_filename ||
+              ' successfully saved to Custom Table ' || l_table_coll_name ||
+              '", "code": "" }');
+        --
+      EXCEPTION
+        WHEN OTHERS THEN
+          -- status
+          htp.init;
+          htp.p('{ "status": "error", "message": "File ' || l_filename ||
+                ' NOT saved to Custom Table ' || l_table_coll_name ||
+                '", "code": "' ||
+                regexp_replace(SQLERRM || ' ' ||
+                               dbms_utility.format_error_backtrace,
+                               '("|' || chr(10) || '|' || chr(13) || ',")',
+                               '') || '" }');
+      END;
+      --
+    END IF;
+    --
   END IF;
   --
   -- Delete File
+  --
   IF l_type = 'DELETE' AND l_delete_files = 'true' THEN
-    -- execute PL/SQL
-    apex_plugin_util.execute_plsql_code(p_plsql_code => l_delete_plsql);
+    l_filename := apex_application.g_x02;
+    --
+    -- Delete from APEX Collection
+    IF l_storage_type = 'COLLECTION' AND l_filename IS NOT NULL THEN
+      BEGIN
+        -- check if collection exist
+        IF apex_collection.collection_exists(p_collection_name => l_table_coll_name) THEN
+          -- get seq_id from files collection
+          OPEN l_cur_delete_files;
+          FETCH l_cur_delete_files
+            INTO l_coll_seq_id;
+          CLOSE l_cur_delete_files;
+          -- delete collection member (only if Seq-ID not null)
+          IF l_coll_seq_id IS NOT NULL THEN
+            apex_collection.delete_member(p_collection_name => l_table_coll_name,
+                                          p_seq             => l_coll_seq_id);
+          END IF;
+        END IF;
+        -- status
+        htp.init;
+        htp.p('{ "status": "success", "message": "File ' || l_filename ||
+              ' successfully deleted from APEX Collection ' ||
+              l_table_coll_name || '", "code": "" }');
+        --
+      EXCEPTION
+        WHEN OTHERS THEN
+          -- status
+          htp.init;
+          htp.p('{ "status": "error", "message": "File ' || l_filename ||
+                ' NOT deleted from APEX Collection ' || l_table_coll_name ||
+                '", "code": "' ||
+                regexp_replace(SQLERRM || ' ' ||
+                               dbms_utility.format_error_backtrace,
+                               '("|' || chr(10) || '|' || chr(13) || ',")',
+                               '') || '" }');
+      END;
+      --
+      -- Delete from custom Table
+    ELSIF l_storage_type = 'TABLE' AND l_filename IS NOT NULL THEN
+      BEGIN
+        -- dynamic delete statement
+        l_delete_sql := 'DELETE FROM ' ||
+                        dbms_assert.sql_object_name(l_table_coll_name) ||
+                        ' WHERE ' ||
+                        dbms_assert.simple_sql_name(l_filename_column) ||
+                        ' = :filename_value';
+        -- execute delete
+        EXECUTE IMMEDIATE l_delete_sql
+          USING l_filename;
+        -- status
+        htp.init;
+        htp.p('{ "status": "success", "message": "File ' || l_filename ||
+              ' successfully deleted from Custom Table ' ||
+              l_table_coll_name || '", "code": "" }');
+        --
+      EXCEPTION
+        WHEN OTHERS THEN
+          -- status
+          htp.init;
+          htp.p('{ "status": "error", "message": "File ' || l_filename ||
+                ' NOT deleted from Custom Table ' || l_table_coll_name ||
+                '", "code": "' ||
+                regexp_replace(SQLERRM || ' ' ||
+                               dbms_utility.format_error_backtrace,
+                               '("|' || chr(10) || '|' || chr(13) || ',")',
+                               '') || '" }');
+      END;
+      --
+    END IF;
   END IF;
   --
   RETURN l_result;
   --
+EXCEPTION
+  WHEN OTHERS THEN
+    -- status
+    htp.init;
+    htp.p('{ "status": "error", "message": "General Error occured in Dropzone AJAX function", "code": "' ||
+          regexp_replace(SQLERRM || ' ' ||
+                         dbms_utility.format_error_backtrace,
+                         '("|' || chr(10) || '|' || chr(13) || ',")',
+                         '') || '" }');
+    --
 END ajax_dropzone;

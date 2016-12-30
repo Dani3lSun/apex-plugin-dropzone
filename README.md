@@ -71,174 +71,183 @@ The plugin settings are highly customizable and you can change:
 
 - **Storage Type**
 
-Choose where the uploaded files are saved. You can either save your files to a APEX collection or to a custom table.
+  - Choose where the uploaded files are saved. You can either save your files to a APEX collection or to a custom table.
 
 - **Collection / Table Name**
 
-Name of the APEX Collection or of your Custom Table. Default APEX Collection: **DROPZONE_UPLOAD**
+  - Name of the APEX Collection or of your Custom Table. Default APEX Collection: **DROPZONE_UPLOAD**
 
 - **Filename Column**
 
-Column of your custom Table which holds the information for the Filename. Only of **Storage Type** is set to **Custom Table**
+  - Column of your custom Table which holds the information for the Filename. Only of **Storage Type** is set to **Custom Table**
 
 - **Mime Type Column**
 
-Column of your custom Table which holds the information for the File Mime-Type. Only of **Storage Type** is set to **Custom Table**
+  - Column of your custom Table which holds the information for the File Mime-Type. Only of **Storage Type** is set to **Custom Table**
 
 - **BLOB Column**
 
-Column of your custom Table which holds the information for the File Content (BLOB). Only of **Storage Type** is set to **Custom Table**
+  - Column of your custom Table which holds the information for the File Content (BLOB). Only of **Storage Type** is set to **Custom Table**
 
 - **Date Column**
 
-Column of your custom Table which holds the information for the File Upload Date. Only of **Storage Type** is set to **Custom Table**
+  - Column of your custom Table which holds the information for the File Upload Date. Only of **Storage Type** is set to **Custom Table**
 
 - **Upload Mechanism**
 
 ##### Normal
-**AJAX:** Async Method
+  - **AJAX:** Async Method
 
-**Description:**
+  - **Description:**
 
-This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the "maxPostSize" Parameter have to be increased on Tomcat Servers (Default 2MB).
+  - This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the "maxPostSize" Parameter have to be increased on Tomcat Servers (Default 2MB).
 
 ##### Chunked
-**AJAX:** Sync Method
+  - **AJAX:** Sync Method
 
-**Description:**
+  - **Description:**
 
-This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
+  - This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
 
 - **Delete Files**
 
-Possibility for end users to delete each file that was uploaded to the server. Only if no Page Refresh has occurred.
+  - Possibility for end users to delete each file that was uploaded to the server. Only if no Page Refresh has occurred.
 
 - **Dropzone Style**
 
-UI Style of your Dropzone Region. You can choose either *Grey Border, Blue Dashed Border or Red Dashed Border*
+  - UI Style of your Dropzone Region. You can choose either *Grey Border, Blue Dashed Border or Red Dashed Border*
 
 - **Width**
 
-Enter the default width of your Dropzone Region. Valid values are px and % data. E.g. 700px or 100%
+  - Enter the default width of your Dropzone Region. Valid values are px and % data. E.g. 700px or 100%
 
 - **Height**
 
-Enter the default height of Dropzone Region. Valid values in px. E.g. 400px or 500px
+  - Enter the default height of Dropzone Region. Valid values in px. E.g. 400px or 500px
 
 - **max. Filesize in MB**
 
-max. File Size (Float Number) that is allowed per File. If a File is larger, it will be removed.
+  - max. File Size (Float Number) that is allowed per File. If a File is larger, it will be removed.
 
 - **max. Files**
 
-Maximum number of allowed files that can be uploaded at once.
+  - Maximum number of allowed files that can be uploaded at once.
 
 - **Parallel Uploads**
 
-Number of parallel Upload Streams to the server. Choose a value between 1 and 2. **1 works most reliable!**
+  - Number of parallel Upload Streams to the server. Choose a value between 1 and 2. **1 works most reliable!**
 
 - **Accepted File Types**
 
-If you only want that users can upload Files of declared types. Valid values: comma separated list of Mime-Types (with Wildcard support) or File endings: image/\*,application/pdf,.psd
+  - If you only want that users can upload Files of declared types. Valid values: comma separated list of Mime-Types (with Wildcard support) or File endings: image/\*,application/pdf,.psd
 
 - **Wait Time (ms)**
 
-Wait time between several uploaded files in milliseconds.
+  - Wait time between several uploaded files in milliseconds.
 
 - **Clickable**
 
-If true, the Dropzone Region will be clickable, if false nothing will be clickable and only Drag & Drop is possible.
+  - If true, the Dropzone Region will be clickable, if false nothing will be clickable and only Drag & Drop is possible.
 
 - **Show File Previews**
 
-Show Preview Images for common File types when adding files. Image-Files got displayed with real content.
-If you want to add more images or others just Copy/Upload the PNG Files to *img* directory. Naming: **<file-extension>.png**
+  - Show Preview Images for common File types when adding files. Image-Files got displayed with real content. If you want to add more images or others just Copy/Upload the PNG Files to *img* directory. Naming: **<file-extension>.png**
 
 - **Copy & Paste Support**
 
-Adds support for Copy & Paste of Images in modern Browsers (like Chrome or Firefox > 50).
+  - Adds support for Copy & Paste of Images in modern Browsers (like Chrome or Firefox > 50).
 
 - **Remove Files after Upload**
 
-If true, clears all Files from Dropzone Region after uploading has finished.
+  - If true, clears all Files from Dropzone Region after uploading has finished.
 
 - **Display Message (Application Scope)**
 
-Message that is displayed inside of the Dropzone Region
+  - Message that is displayed inside of the Dropzone Region
 
 - **Fallback Message (Application Scope)**
 
-Message that is displayed when your Browser doesn´t support HTML5 Drag & Drop File Uploads
+  - Message that is displayed when your Browser doesn´t support HTML5 Drag & Drop File Uploads
 
 - **File too Big Message (Application Scope)**
 
-Message that is displayed per File, if the File is bigger than you allowed in the settings. You can use Placeholders like: **{{filesize}}** or **{{maxFilesize}}**
+  - Message that is displayed per File, if the File is bigger than you allowed in the settings. You can use Placeholders like: **{{filesize}}** or **{{maxFilesize}}**
 
 - **max. Files Message (Application Scope)**
 
-Message that is displayed per File, if the uploaded Files exceed the max. Files settings. You can use Placeholders like: **{{maxFiles}}**
+  - Message that is displayed per File, if the uploaded Files exceed the max. Files settings. You can use Placeholders like: **{{maxFiles}}**
 
 - **Remove File Message (Application Scope)**
 
-Message that is displayed below a single File to remove the File. Only when **Delete Files** is set.
+  - Message that is displayed below a single File to remove the File. Only when **Delete Files** is set.
 
 - **Cancel Upload Message (Application Scope)**
 
-Message that is displayed below a single File to Cancel Uploading during the actual Upload Process. Only when **Delete Files** is set.
+  - Message that is displayed below a single File to Cancel Uploading during the actual Upload Process. Only when **Delete Files** is set.
 
 - **Cancel Upload Confirm Message (Application Scope)**
 
-Message that is displayed in the Confirm Dialog if you clicked the Upload Cancel Link. Only when **Delete Files** is set.
+  - Message that is displayed in the Confirm Dialog if you clicked the Upload Cancel Link. Only when **Delete Files** is set.
 
 - **Invalid File Type Message (Application Scope)**
 
-Message that is displayed per File, if the File´s Mime-Type is in the Exclude List.
+  - Message that is displayed per File, if the File´s Mime-Type is in the Exclude List.
 
 
 ## Plugin Events
 - **Dropzone added file**
 
-DA event that fires when a single file was added to the Dropzone Region (Client Side)
+  - DA event that fires when a single file was added to the Dropzone Region (Client Side)
+  - this.data holds the file element, e.g file.name or file.size
 
 - **Dropzone chunked upload file success (AJAX)**
 
-DA event that fires when uploading 1 Chunk of a File was successful (Server Side) (Upload Mechanism **Chunked**)
+  - DA event that fires when uploading 1 Chunk of a File was successful (Server Side) (Upload Mechanism **Chunked**)
+  - this.data holds the Server response object
 
 - **Dropzone chunked upload file error (AJAX)**
 
-DA event that fires when uploading 1 Chunk of a File has an error (Server Side) (Upload Mechanism **Chunked**)
+  - DA event that fires when uploading 1 Chunk of a File has an error (Server Side) (Upload Mechanism **Chunked**)
+  - this.data holds the Server response object
 
 - **Dropzone upload file success (AJAX)**
 
-DA event that fires when uploading a File was successful (Server Side) (Upload Mechanism **Normal**)
+  - DA event that fires when uploading a File was successful (Server Side) (Upload Mechanism **Normal**)
+  - this.data holds the Server response object
 
 - **Dropzone upload file error (AJAX)**
 
-DA event that fires when uploading a File has an error (Server Side) (Upload Mechanism **Normal**)
+  - DA event that fires when uploading a File has an error (Server Side) (Upload Mechanism **Normal**)
+  - this.data holds the Server response object
 
 - **Dropzone upload completed**
 
-DA event that fires when uploading all files completed (Client Side)
+  - DA event that fires when uploading all files completed (Client Side)
 
 - **Dropzone deleted file**
 
-DA event that fires if the Remove File Link of a File is pressed (Client Side)
+  - DA event that fires if the Remove File Link of a File is pressed (Client Side)
+  - this.data holds the file element, e.g file.name or file.size
 
 - **Dropzone delete file success (AJAX)**
 
-DA event that fires when deleting a single files was successful (Server Side)
+  - DA event that fires when deleting a single files was successful (Server Side)
+  - this.data holds the Server response object
 
 - **Dropzone delete file error (AJAX)**
 
-DA event that fires when deleting a single files has an error (Server Side)
+  - DA event that fires when deleting a single files has an error (Server Side)
+  - this.data holds the Server response object
 
 - **Dropzone max files exceeded**
 
-DA event that fires per file when more files are added to the Dropzone than allowed (Client Side)
+  - DA event that fires per file when more files are added to the Dropzone than allowed (Client Side)
+  - this.data holds the file element, e.g file.name or file.size
 
 - **Dropzone Total Upload Progress**
 
-DA that fires from time to time during upload of all files and return the Total Upload Progress (Client Side)
+  - DA that fires from time to time during upload of all files and return the Total Upload Progress (Client Side)
+  - this.data holds the totalPercentage element
 
 
 ## How to use

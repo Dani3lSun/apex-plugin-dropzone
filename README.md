@@ -3,6 +3,27 @@ Dropzone is a region type plugin that allows you to provide nice looking drag’
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 ## Changelog
+
+### 2.0.0 - Complete new Version built from ground up new. Now much easier to use and with more features
+
+- Choose where to save the Files (APEX Collection or Custom Table)
+- No more writing of custom PL/SQL Code inside the Plugin (much more Update save)
+- More Events that Developers can use for custom Interactions
+- Choose the Upload Method (Normal (1 Request) or Chunked (Multiple Requests))
+- Improved Error Handling and Logging for the whole AJAX based Upload Process
+- Possibility to delete Files which were accidentally uploaded to the Server
+- Much better Internationalization and App Wide definition of Messages
+- And of course all the "old" Features as well
+
+*Upgrade Note: Thus the Plugin is rewritten from ground up, Version 2.0.0 is completely incompatible with prior Versions!
+It is recommended to install Version 2.0.0 beside Version 1.XX and replace all Dropzone Regions in your App.
+If you didn´t touch the default PL/SQL Code of Version 1.XX and used the default Settings then the Upgrade Process should be straight forward (APEX Collection is the same). If you used prior Plugin Events, you have to change these ones to the Events of Dropzone 2.*
+
+---
+
+<details>
+  <summary>Changelog Version 1.XX</summary>
+
 #### 1.9.6 - fixed issue #15 (Page Items to Submit) / Added new event "Dropzone max files exceeded" (issue #13)
 *Update Note from v1.9.5: It may be required to renew the PL/SQL Code (Upload) to the default which is shipped with this plugin. Unfortunately Plugin Attributes are not updated automatically.*
 
@@ -39,106 +60,128 @@ It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
 #### Beta - In development
 
+</details>
+
 ## Install
-- Import plugin file "region_type_plugin_de_danielh_dropzone.sql.sql" from source directory into your application
-- (Optional) Deploy the CSS/JS files from "server" directory on your webserver and change the "File Prefix" to webservers folder.
+- Import plugin file "region_type_plugin_de_danielh_dropzone2.sql" from source directory into your application
+- (Optional) Deploy the CSS/JS files from "server" directory on your webserver and change the "File Prefix" to web servers folder (Inside the Plugin Settings).
 
 ## Plugin Settings
 The plugin settings are highly customizable and you can change:
-- **Dropzone Style** - Default style of Dropzone area (grey border / blue dashed border)
-- **Width** - default width of Dropzone area. Valid values are px and % data
-- **Height** - default height of Dropzone area. Valid values are px and % data
-- **Display message** - Enter the text that would be displayed in the Dropzone area.
-- **max. Filesize in MB** - max. file size that is allowed per file. If a file is bigger, it will be removed
-- **Clickable** - If true, the dropzone element itself will be clickable, if false nothing will be clickable
-- **Remove files after upload** - If true, clears all files from Dropzone area if uploading them is finished
-- **max Files** - Maximum number of allowed files that can be uploaded at once
-- **Parallel Uploads** - Number of parallel upload streams to the server (1 or 2 concurrent)
-- **Show common file previews** - Show preview images for common file types when adding files
-- **Accepted file types** - limit uploading of declared file types (file endings, mime_types, wildcards)
-- **Refresh Region after upload (REGION_STATIC_ID)** - Region Static ID of the region which should be refreshed after uploading of all files is complete
-- **Image copy&paste support** - Adds support for Copy&Paste of images in modern Browsers (like Chrome)
-- **Wait in milliseconds** - Wait time between uploaded files in milliseconds
-- **JavaScript Callback Function Event** - Event of the plugin you want a custom javascript function fired (added file / upload complete)
-- **JavaScript Callback Function** - A valid javascript function that is executed on the event you selected
-- **File too big message** - Message that is shown when a file is too big
-- **Max files exceeded message** - If max Files is set, this will be the error message when it's exceeded
-- **Page Items to submit** - Page Items that should be set into session state.
-- **PLSQL Code (Upload)** - PLSQL code which saves the files to database tables or collections
-- **Delete Files** - Possibility for end users to delete each file that was uploaded to the server
-- **PLSQL Code (Delete)** - PLSQL code which deletes a file from database tables or collections
-- **Cancel Upload Message** - If *Delete Files* is set, this will be the message of the link to cancel the upload of a file
-- **Remove File Message** - If *Delete Files* is set, this will be the message of the link to remove a file
-- **Logging** - Whether to log events in the console
+
+- **Storage Type**
+Choose where the uploaded files are saved. You can either save your files to a APEX collection or to a custom table.
+
+- **Collection / Table Name**
+Name of the APEX Collection or of your Custom Table. Default APEX Collection: DROPZONE_UPLOAD
+
+- **Filename Column**
+Column of your custom Table which holds the information for the Filename. Only of *Storage Type* is set to *Custom Table*
+
+- **Mime Type Column**
+Column of your custom Table which holds the information for the File Mime-Type. Only of *Storage Type* is set to *Custom Table*
+
+- **BLOB Column**
+Column of your custom Table which holds the information for the File Content (BLOB). Only of *Storage Type* is set to *Custom Table*
+
+- **Date Column**
+Column of your custom Table which holds the information for the File Upload Date. Only of *Storage Type* is set to *Custom Table*
+
+- **Upload Mechanism**
+##### Normal
+**AJAX:** Async Method
+**Description:**
+This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in *1 Request* to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the "maxPostSize" Parameter have to be increased on Tomcat Servers (Default 2MB).
+##### Chunked
+**AJAX:** Sync Method
+**Description:**
+This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in *Multiple Requests* (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like *maxPostSize*. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
+
+- **Delete Files**
+Possibility for end users to delete each file that was uploaded to the server. Only if no Page Refresh has occurred.
+
+- **Dropzone Style**
+UI Style of your Dropzone Region. You can choose either *Grey Border, Blue Dashed Border or Red Dashed Border*
+
+- **Width**
+Enter the default width of your Dropzone Region. Valid values are px and % data. E.g. 700px or 100%
+
+- **Height**
+Enter the default height of Dropzone Region. Valid values in px. E.g. 400px or 500px
+
+- **max. Filesize in MB**
+max. File Size (Float Number) that is allowed per File. If a File is larger, it will be removed.
+
+- **max. Files**
+Maximum number of allowed files that can be uploaded at once.
+
+- **Parallel Uploads**
+Number of parallel Upload Streams to the server. Choose a value between 1 and 2. *1 works most reliable!*
+
+- **Accepted File Types**
+If you only want that users can upload Files of declared types. Valid values: comma separated list of Mime-Types (with Wildcard support) or File endings: image/\*,application/pdf,.psd
+
+- **Wait Time (ms)**
+Wait time between several uploaded files in milliseconds.
+
+- **Clickable**
+If true, the Dropzone Region will be clickable, if false nothing will be clickable and only Drag & Drop is possible.
+
+- **Show File Previews**
+Show Preview Images for common File types when adding files. Image-Files got displayed with real content.
+If you want to add more images or others just Copy/Upload the PNG Files to *img* directory. Naming: *<file-extension>.png*
+
+- **Copy & Paste Support**
+Adds support for Copy & Paste of Images in modern Browsers (like Chrome or Firefox > 50).
+
+- **Remove Files after Upload**
+If true, clears all Files from Dropzone Region after uploading has finished.
+
+- **Display Message (Application Scope)**
+Message that is displayed inside of the Dropzone Region
+
+- **Fallback Message (Application Scope)**
+Message that is displayed when your Browser doesn´t support HTML5 Drag & Drop File Uploads
+
+- **File too Big Message**
+Message that is displayed per File, if the File is bigger than you allowed in the settings. You can use Placeholders like: *{{filesize}}* or *{{maxFilesize}}*
+
+- **max. Files Message**
+Message that is displayed per File, if the uploaded Files exceed the max. Files settings. You can use Placeholders like: *{{maxFiles}}*
+
+- **Remove File Message**
+Message that is displayed below a single File to remove the File. Only when *Delete Files* is set.
+
+- **Cancel Upload Message**
+Message that is displayed below a single File to Cancel Uploading during the actual Upload Process. Only when *Delete Files* is set.
+
+- **Cancel Upload Confirm Message**
+Message that is displayed in the Confirm Dialog if you clicked the Upload Cancel Link. Only when *Delete Files* is set.
+
+- **Invalid File Type Message**
+Message that is displayed per File, if the File´s Mime-Type is in the Exclude List.
+
 
 ## Plugin Events
-- **Dropzone added file** - DA event that fires when a single file was added to the dropzone area
-- **Dropzone upload completed** - DA event that fires when uploading all files completed
-- **Dropzone upload file success** - DA event that fires when uploading a single files was successful (AJAX)
-- **Dropzone upload file error** - DA event that fires when uploading a single files had an error (AJAX)
-- **Dropzone delete file success** - DA event that fires when deleting a single files was successful (AJAX)
-- **Dropzone delete file error** - DA event that fires when deleting a single files has an error (AJAX)
+- **Dropzone added file** - DA event that fires when a single file was added to the Dropzone Region (Client Side)
+- **Dropzone chunked upload file success (AJAX)** - DA event that fires when uploading 1 Chunk of a File was successful (Server Side) (Upload Mechanism *Chunked*)
+- **Dropzone chunked upload file error (AJAX)** - DA event that fires when uploading 1 Chunk of a File has an error (Server Side) (Upload Mechanism *Chunked*)
+- **Dropzone upload file success (AJAX)**  DA event that fires when uploading a File was successful (Server Side) (Upload Mechanism *Normal*)
+- **Dropzone upload file error (AJAX)**  DA event that fires when uploading a File has an error (Server Side) (Upload Mechanism *Normal*)
+- **Dropzone upload completed** - DA event that fires when uploading all files completed (Client Side)
+- **Dropzone deleted file** - DA event that fires if the Remove File Link of a File is pressed (Client Side)
+- **Dropzone delete file success (AJAX)** - DA event that fires when deleting a single files was successful (Server Side)
+- **Dropzone delete file error (AJAX)** - DA event that fires when deleting a single files has an error (Server Side)
+- **Dropzone max files exceeded** - DA event that fires per file when more files are added to the Dropzone than allowed (Client Side)
+- **Dropzone Total Upload Progress** - DA that fires from time to time during upload of all files and return the Total Upload Progress (Client Side)
+
 
 ## How to use
 - Create a Dropzone region on target page
-- Choose best fitting plugin attributes (help included)
+- Choose best fitting Plugin Attributes (Help included)
 
-#### Save/Upload files to DB using PL/SQL
-For saving files to DB you can use a PL/SQL function like this (Default):
-
-```language-sql
-DECLARE
-  --
-  l_collection_name VARCHAR2(100);
-  l_blob            BLOB;
-  l_filename        VARCHAR2(200);
-  l_mime_type       VARCHAR2(100);
-  l_token           VARCHAR2(32000);
-  l_random_file_id  NUMBER;
-  --
-BEGIN
-  -- get defaults from AJAX Process
-  l_filename  := apex_application.g_x02;
-  l_mime_type := nvl(apex_application.g_x03,
-                     'application/octet-stream');
-  -- random file id
-  l_random_file_id := round(dbms_random.value(100000,
-                                              99999999));
-  -- build BLOB from f01 30k Array (base64 encoded)
-  dbms_lob.createtemporary(l_blob,
-                           FALSE,
-                           dbms_lob.session);
-  FOR i IN 1 .. apex_application.g_f01.count LOOP
-    l_token := wwv_flow.g_f01(i);
-    IF length(l_token) > 0 THEN
-      dbms_lob.append(l_blob,
-                      to_blob(utl_encode.base64_decode(utl_raw.cast_to_raw(l_token))));
-    END IF;
-  END LOOP;
-  --
-  -- create own collection (here starts custom part (for example a Insert statement))
-  -- collection name
-  l_collection_name := 'DROPZONE_UPLOAD';
-  -- check if collection exist
-  IF NOT
-      apex_collection.collection_exists(p_collection_name => l_collection_name) THEN
-    apex_collection.create_collection(l_collection_name);
-  END IF;
-  -- add collection member (only if BLOB not null)
-  IF dbms_lob.getlength(lob_loc => l_blob) IS NOT NULL THEN
-    apex_collection.add_member(p_collection_name => l_collection_name,
-                               p_c001            => l_filename, -- filename
-                               p_c002            => l_mime_type, -- mime_type
-                               p_d001            => SYSDATE, -- date created
-                               p_n001            => l_random_file_id, -- random file id
-                               p_blob001         => l_blob); -- BLOB file content
-  END IF;
-  --
-END;
-```
-
-#### Get files from default PL/SQL code
-If you use the default PL/SQL code provided with this plugin, the files are saved in a APEX collection called "DROPZONE_UPLOAD". Select it like that:
+#### Get files from APEX Collection
+If you use the default Options provided with this Plugin, the files are saved in a APEX collection called *DROPZONE_UPLOAD*. Select it like that:
 
 ```language-sql
 SELECT c001    AS filename,
@@ -150,46 +193,9 @@ SELECT c001    AS filename,
  WHERE collection_name = 'DROPZONE_UPLOAD';
  ```
 
-#### Delete file from DB using PL/SQL
-For deleting files from DB you can use a PL/SQL function like this (Default):
-
- ```language-sql
- DECLARE
-   --
-   l_collection_name VARCHAR2(100);
-   l_filename        VARCHAR2(200);
-   l_coll_seq_id     NUMBER;
-   --
-   CURSOR l_cur_files IS
-     SELECT apex_collections.seq_id
-       FROM apex_collections
-      WHERE apex_collections.collection_name = l_collection_name
-        AND apex_collections.c001 = l_filename;
-   --
- BEGIN
-   -- get defaults from AJAX Process
-   l_filename := apex_application.g_x02;
-   -- collection name
-   l_collection_name := 'DROPZONE_UPLOAD';
-   -- check if collection exist
-   IF apex_collection.collection_exists(p_collection_name => l_collection_name) THEN
-     -- get seq_id from files collection
-     OPEN l_cur_files;
-     FETCH l_cur_files
-       INTO l_coll_seq_id;
-     CLOSE l_cur_files;
-     -- delete collection member (only if Seq-ID not null)
-     IF l_coll_seq_id IS NOT NULL THEN
-       apex_collection.delete_member(p_collection_name => l_collection_name,
-                                     p_seq             => l_coll_seq_id);
-     END IF;
-   END IF;
-   --
- END;
- ```
 
 ## Hint for ORDS and Tomcat users
-If you have problems with uploading larger files, then it could be a issue with the max. allowed post size of Tomcat server (default is 2MB). To get around this issue please add the parameter **maxPostSize** with a byte value to your connector in server.xml file of tomcat.
+If you have Problems uploading larger Files *(only with prefered Upload Mechanism "Normal")*, then it could be a Issue with the max. allowed Post Size of Tomcat Server (default is 2MB). To get around this issue please add the Parameter **maxPostSize** with a Byte value to your Connector in server.xml file of Tomcat.
 
 For AJP connector:
 ```

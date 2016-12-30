@@ -2,6 +2,9 @@
 Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads.
 It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 
+## Demo Application
+https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
+
 ## Changelog
 
 ### 2.0.0 - Complete new Version built from ground up. Now much easier to use and with more features
@@ -9,7 +12,7 @@ It is based on JS Framework dropzone.js (https://github.com/enyo/dropzone).
 - Choose where to save the Files (APEX Collection or Custom Table)
 - No more writing of custom PL/SQL Code inside the Plugin (much more Update save)
 - More Events that Developers can use for custom Interactions
-- Choose the Upload Method (Normal (1 Request) or Chunked (Multiple Requests))
+- Choose the Upload Method (**Normal: 1 Request** or **Chunked: Multiple Requests**)
 - Improved Error Handling and Logging for the whole AJAX based Upload Process
 - Possibility to delete Files which were accidentally uploaded to the Server
 - Better Documentation on Github and in the Plugin Attribute Help
@@ -281,8 +284,6 @@ For HTTP connector:
 This example sets maxPostSize to 15MB or 15728640 bytes. Setting the maxPostSize attribute to a value less than zero (e.g -1) disables the whole limitation.
 More about it in the [Tomcat 8 Documentation](https://tomcat.apache.org/tomcat-8.0-doc/config/http.html#Attributes)
 
-## Demo Application
-https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Preview
 ![](https://github.com/Dani3lSun/apex-plugin-dropzone/blob/master/preview.gif)

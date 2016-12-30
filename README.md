@@ -75,38 +75,39 @@ Choose where the uploaded files are saved. You can either save your files to a A
 
 - **Collection / Table Name**
 
-Name of the APEX Collection or of your Custom Table. Default APEX Collection: DROPZONE_UPLOAD
+Name of the APEX Collection or of your Custom Table. Default APEX Collection: **DROPZONE_UPLOAD**
 
 - **Filename Column**
 
-Column of your custom Table which holds the information for the Filename. Only of *Storage Type* is set to *Custom Table*
+Column of your custom Table which holds the information for the Filename. Only of **Storage Type** is set to **Custom Table**
 
 - **Mime Type Column**
 
-Column of your custom Table which holds the information for the File Mime-Type. Only of *Storage Type* is set to *Custom Table*
+Column of your custom Table which holds the information for the File Mime-Type. Only of **Storage Type** is set to **Custom Table**
 
 - **BLOB Column**
 
-Column of your custom Table which holds the information for the File Content (BLOB). Only of *Storage Type* is set to *Custom Table*
+Column of your custom Table which holds the information for the File Content (BLOB). Only of **Storage Type** is set to **Custom Table**
 
 - **Date Column**
 
-Column of your custom Table which holds the information for the File Upload Date. Only of *Storage Type* is set to *Custom Table*
+Column of your custom Table which holds the information for the File Upload Date. Only of **Storage Type** is set to **Custom Table**
 
 - **Upload Mechanism**
+
 ##### Normal
 **AJAX:** Async Method
 
 **Description:**
 
-This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in *1 Request* to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the "maxPostSize" Parameter have to be increased on Tomcat Servers (Default 2MB).
+This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the "maxPostSize" Parameter have to be increased on Tomcat Servers (Default 2MB).
 
 ##### Chunked
 **AJAX:** Sync Method
 
 **Description:**
 
-This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in *Multiple Requests* (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like *maxPostSize*. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
+This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
 
 - **Delete Files**
 
@@ -134,7 +135,7 @@ Maximum number of allowed files that can be uploaded at once.
 
 - **Parallel Uploads**
 
-Number of parallel Upload Streams to the server. Choose a value between 1 and 2. *1 works most reliable!*
+Number of parallel Upload Streams to the server. Choose a value between 1 and 2. **1 works most reliable!**
 
 - **Accepted File Types**
 
@@ -151,7 +152,7 @@ If true, the Dropzone Region will be clickable, if false nothing will be clickab
 - **Show File Previews**
 
 Show Preview Images for common File types when adding files. Image-Files got displayed with real content.
-If you want to add more images or others just Copy/Upload the PNG Files to *img* directory. Naming: *<file-extension>.png*
+If you want to add more images or others just Copy/Upload the PNG Files to *img* directory. Naming: **<file-extension>.png**
 
 - **Copy & Paste Support**
 
@@ -171,23 +172,23 @@ Message that is displayed when your Browser doesn´t support HTML5 Drag & Drop F
 
 - **File too Big Message (Application Scope)**
 
-Message that is displayed per File, if the File is bigger than you allowed in the settings. You can use Placeholders like: *{{filesize}}* or *{{maxFilesize}}*
+Message that is displayed per File, if the File is bigger than you allowed in the settings. You can use Placeholders like: **{{filesize}}** or **{{maxFilesize}}**
 
 - **max. Files Message (Application Scope)**
 
-Message that is displayed per File, if the uploaded Files exceed the max. Files settings. You can use Placeholders like: *{{maxFiles}}*
+Message that is displayed per File, if the uploaded Files exceed the max. Files settings. You can use Placeholders like: **{{maxFiles}}**
 
 - **Remove File Message (Application Scope)**
 
-Message that is displayed below a single File to remove the File. Only when *Delete Files* is set.
+Message that is displayed below a single File to remove the File. Only when **Delete Files** is set.
 
 - **Cancel Upload Message (Application Scope)**
 
-Message that is displayed below a single File to Cancel Uploading during the actual Upload Process. Only when *Delete Files* is set.
+Message that is displayed below a single File to Cancel Uploading during the actual Upload Process. Only when **Delete Files** is set.
 
 - **Cancel Upload Confirm Message (Application Scope)**
 
-Message that is displayed in the Confirm Dialog if you clicked the Upload Cancel Link. Only when *Delete Files* is set.
+Message that is displayed in the Confirm Dialog if you clicked the Upload Cancel Link. Only when **Delete Files** is set.
 
 - **Invalid File Type Message (Application Scope)**
 
@@ -201,19 +202,19 @@ DA event that fires when a single file was added to the Dropzone Region (Client 
 
 - **Dropzone chunked upload file success (AJAX)**
 
-DA event that fires when uploading 1 Chunk of a File was successful (Server Side) (Upload Mechanism *Chunked*)
+DA event that fires when uploading 1 Chunk of a File was successful (Server Side) (Upload Mechanism **Chunked**)
 
 - **Dropzone chunked upload file error (AJAX)**
 
-DA event that fires when uploading 1 Chunk of a File has an error (Server Side) (Upload Mechanism *Chunked*)
+DA event that fires when uploading 1 Chunk of a File has an error (Server Side) (Upload Mechanism **Chunked**)
 
 - **Dropzone upload file success (AJAX)**
 
-DA event that fires when uploading a File was successful (Server Side) (Upload Mechanism *Normal*)
+DA event that fires when uploading a File was successful (Server Side) (Upload Mechanism **Normal**)
 
 - **Dropzone upload file error (AJAX)**
 
-DA event that fires when uploading a File has an error (Server Side) (Upload Mechanism *Normal*)
+DA event that fires when uploading a File has an error (Server Side) (Upload Mechanism **Normal**)
 
 - **Dropzone upload completed**
 
@@ -245,7 +246,7 @@ DA that fires from time to time during upload of all files and return the Total 
 - Choose best fitting Plugin Attributes (Help included)
 
 #### Get files from APEX Collection
-If you use the default Options provided with this Plugin, the files are saved in a APEX collection called *DROPZONE_UPLOAD*. Select it like that:
+If you use the default Options provided with this Plugin, the files are saved in a APEX collection called **DROPZONE_UPLOAD**. Select it like that:
 
 ```language-sql
 SELECT c001    AS filename,
@@ -259,7 +260,7 @@ SELECT c001    AS filename,
 
 
 ## Hint for ORDS and Tomcat users
-If you have Problems uploading larger Files *(only with prefered Upload Mechanism "Normal")*, then it could be a Issue with the max. allowed Post Size of Tomcat Server (default is 2MB). To get around this issue please add the Parameter **maxPostSize** with a Byte value to your Connector in server.xml file of Tomcat.
+If you have Problems uploading larger Files **(only with prefered Upload Mechanism "Normal")**, then it could be a Issue with the max. allowed Post Size of Tomcat Server (default is 2MB). To get around this issue please add the Parameter **maxPostSize** with a Byte value to your Connector in server.xml file of Tomcat.
 
 For AJP connector:
 ```

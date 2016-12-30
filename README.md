@@ -80,19 +80,19 @@ The plugin settings are highly customizable and you can change:
 
 - **Filename Column**
 
-  - Column of your custom Table which holds the information for the Filename. Only of **Storage Type** is set to **Custom Table**
+  - Column of your custom Table which holds the information for the Filename. Only if **Storage Type** is set to **Custom Table**
 
 - **Mime Type Column**
 
-  - Column of your custom Table which holds the information for the File Mime-Type. Only of **Storage Type** is set to **Custom Table**
+  - Column of your custom Table which holds the information for the File Mime-Type. Only if **Storage Type** is set to **Custom Table**
 
 - **BLOB Column**
 
-  - Column of your custom Table which holds the information for the File Content (BLOB). Only of **Storage Type** is set to **Custom Table**
+  - Column of your custom Table which holds the information for the File Content (BLOB). Only if **Storage Type** is set to **Custom Table**
 
 - **Date Column**
 
-  - Column of your custom Table which holds the information for the File Upload Date. Only of **Storage Type** is set to **Custom Table**
+  - Column of your custom Table which holds the information for the File Upload Date. Only if **Storage Type** is set to **Custom Table**
 
 - **Upload Mechanism**
 
@@ -102,9 +102,9 @@ The plugin settings are highly customizable and you can change:
     - This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle ORDS, Apache, Tomcat. But for large Files the **maxPostSize** Parameter have to be increased on Tomcat Servers (Default 2MB).
 
   - **Chunked**
-    - **AJAX:** Sync Method
+    - **AJAX:** Async Method
 
-    - This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. Thus this Method is using Synchronous AJAX Calls it blocks the page interaction while uploading is in progress.
+    - This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS or Oracle WebTier! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. But if you expect a lot of big files that get uploaded this Method should be fine for that!
 
 - **Delete Files**
 

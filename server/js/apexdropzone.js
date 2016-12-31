@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 2.0.0
+// Version: 2.0.1
 
 // global namespace
 var apexDropzone = {
@@ -144,13 +144,13 @@ var apexDropzone = {
                                     vJsonReturn = jQuery.parseJSON(pData);
                                 } catch (err) {
                                     apex.debug.log('uploadDzFiles Response ParseError', err);
-                                    vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "uploadDzFiles Response ParseError" }');
+                                    vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "uploadDzFiles Response ParseError", "code": "AJAX Callback (pData) ParseError" }');
                                 }
                                 // response error
                                 if (vJsonReturn.status == 'error') {
                                     // APEX event
-                                    apex.debug.log('uploadDzFiles Error', vJsonReturn.message);
-                                    apex.event.trigger('#' + pRegionId, 'dropzone-upload-error', vJsonReturn.message);
+                                    apex.debug.log('uploadDzFiles Error', vJsonReturn.message, vJsonReturn.code);
+                                    apex.event.trigger('#' + pRegionId, 'dropzone-upload-error', vJsonReturn);
                                     // file status
                                     file.status = Dropzone.ERROR;
                                     pDropzone.emit("error", file, "Database error during file upload");
@@ -273,13 +273,13 @@ var apexDropzone = {
                                         vJsonReturn = jQuery.parseJSON(pData);
                                     } catch (err) {
                                         apex.debug.log('uploadDzFilesChunked Response ParseError', err);
-                                        vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "uploadDzFilesChunked Response ParseError" }');
+                                        vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "uploadDzFilesChunked Response ParseError", "code": "AJAX Callback (pData) ParseError" }');
                                     }
                                     // response error
                                     if (vJsonReturn.status == 'error') {
                                         // APEX event
-                                        apex.debug.log('uploadDzFilesChunked Error', vJsonReturn.message);
-                                        apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-error', vJsonReturn.message);
+                                        apex.debug.log('uploadDzFilesChunked Error', vJsonReturn.message, vJsonReturn.code);
+                                        apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-error', vJsonReturn);
                                         // file status
                                         file.status = Dropzone.ERROR;
                                         pDropzone.emit("error", file, "Database error during file upload");
@@ -367,13 +367,13 @@ var apexDropzone = {
                     vJsonReturn = jQuery.parseJSON(pData);
                 } catch (err) {
                     apex.debug.log('deleteDzFile Response ParseError', err);
-                    vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "deleteDzFile Response ParseError" }');
+                    vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "deleteDzFile Response ParseError", "code": "AJAX Callback (pData) ParseError" }');
                 }
                 // response error
                 if (vJsonReturn.status == 'error') {
                     // APEX event
-                    apex.debug.log('deleteDzFile Error', vJsonReturn.message);
-                    apex.event.trigger('#' + pRegionId, 'dropzone-delete-error', vJsonReturn.message);
+                    apex.debug.log('deleteDzFile Error', vJsonReturn.message, vJsonReturn.code);
+                    apex.event.trigger('#' + pRegionId, 'dropzone-delete-error', vJsonReturn);
                     // response success
                 } else if (vJsonReturn.status == 'success') {
                     // APEX event

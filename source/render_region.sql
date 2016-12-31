@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone APEX Plugin
- * Version: 2.0.0 (30.12.2016)
+ * Version: 2.0.1 (31.12.2016)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -182,7 +182,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   l_current_chunk_count NUMBER;
   l_total_chunk_count   NUMBER;
   l_chunk_clob          CLOB;
-  l_final_clob          CLOB;
+  l_chunk_blob          BLOB;
   -- cursor for files to delete
   CURSOR l_cur_delete_files IS
     SELECT apex_collections.seq_id
@@ -191,7 +191,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
        AND apex_collections.c001 = l_filename;
   -- cursor for file chunks
   CURSOR l_cur_chunk_files IS
-    SELECT apex_collections.clob001 AS chunk_clob
+    SELECT apex_collections.blob001 AS chunk_blob
       FROM apex_collections
      WHERE upper(apex_collections.collection_name) = l_chunked_temp_coll
        AND apex_collections.c001 = l_filename
@@ -241,33 +241,33 @@ BEGIN
         END IF;
         -- add collection member (only if l_chunk_clob not null)
         IF dbms_lob.getlength(l_chunk_clob) IS NOT NULL THEN
+          -- convert base64 chunk to BLOB
+          l_chunk_blob := apex_web_service.clobbase642blob(p_clob => l_chunk_clob);
+          --
           apex_collection.add_member(p_collection_name => l_chunked_temp_coll,
                                      p_c001            => l_filename, -- filename
                                      p_c002            => l_mime_type, -- mime_type
                                      p_n001            => l_current_chunk_count, -- current count from JS loop
                                      p_n002            => l_total_chunk_count, -- total count of all chunks
-                                     p_clob001         => l_chunk_clob); -- CLOB base64 file chunk content
+                                     p_blob001         => l_chunk_blob); -- BLOB base64 file chunk content
         END IF;
         -- last file chunk peace
         IF l_current_chunk_count = l_total_chunk_count THEN
-          dbms_lob.createtemporary(l_final_clob,
+          dbms_lob.createtemporary(l_blob,
                                    FALSE,
                                    dbms_lob.session);
           -- loop over all file chunks and build final file
           FOR l_rec_chunk_files IN l_cur_chunk_files LOOP
-            IF dbms_lob.getlength(l_rec_chunk_files.chunk_clob) IS NOT NULL THEN
-              dbms_lob.append(l_final_clob,
-                              l_rec_chunk_files.chunk_clob);
+            IF dbms_lob.getlength(l_rec_chunk_files.chunk_blob) IS NOT NULL THEN
+              dbms_lob.append(l_blob,
+                              l_rec_chunk_files.chunk_blob);
             END IF;
           END LOOP;
           -- delete temp collection
           IF apex_collection.collection_exists(p_collection_name => l_chunked_temp_coll) THEN
             apex_collection.delete_collection(p_collection_name => l_chunked_temp_coll);
           END IF;
-          -- build final blob from base64 clob
-          IF dbms_lob.getlength(l_final_clob) IS NOT NULL THEN
-            l_blob := apex_web_service.clobbase642blob(p_clob => l_final_clob);
-          END IF;
+          --
         END IF;
         -- status
         htp.init;

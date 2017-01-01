@@ -7,7 +7,7 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
-#### 2.0.2 - Performance Improvements for Chunked File Uploads / Improved Client Side Debug Logging / Improved Server AJAX Error Handling
+#### 2.0.2 - Performance Improvements for Chunked File Uploads / Improved Upload Status for Chunked File Uploads / Improved Client Side Debug Logging / Improved Server AJAX Error Handling
 
 #### 2.0.1 - Performance Improvements for Chunked File Uploads / Improved Client Side Debug Logging / Oracle Database EPG Note in Docs & Help Pages
 

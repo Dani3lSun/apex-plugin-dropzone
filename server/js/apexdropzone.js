@@ -63,10 +63,16 @@ var apexDropzone = {
             pDropzone.emit('uploadprogress', pFile, percentComplete, pFile.size / (100 / percentComplete));
         }
     },
-    // Set upload progress function
-    setUploadProgressChunked: function(pCurrentChunk, pChunkCount, pDropzone, pFile) {
-        var percentComplete = (pCurrentChunk / pChunkCount) * 100;
-        pDropzone.emit('uploadprogress', pFile, percentComplete, pFile.size / (100 / percentComplete));
+    // Set upload progress function for chunked upload
+    setUploadProgressChunked: function(pEvent, pDropzone, pCurrentChunk, pChunkCount, pFile) {
+        if (!pEvent) {
+            pEvent = window.event;
+        }
+        if (pEvent.lengthComputable) {
+            var percentComplete = (pCurrentChunk / pChunkCount) * 100;
+            percentComplete = percentComplete + ((pEvent.loaded / pEvent.total) * 100) / pChunkCount;
+            pDropzone.emit('uploadprogress', pFile, percentComplete, pFile.size / (100 / percentComplete));
+        }
     },
     // Asynchronous Loop Function
     asyncLoop: function(iterations, func, callback) {
@@ -297,8 +303,6 @@ var apexDropzone = {
                                                 // APEX event
                                                 apex.debug.log('uploadDzFilesChunked Success', vJsonReturn.message);
                                                 apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-success', pData);
-                                                // set file progress
-                                                apexDropzone.setUploadProgressChunked(currentChunk, fileChunkCount, pDropzone, file);
                                                 // file status (only if last chunk was successful)
                                                 if (currentChunk == fileChunkCount) {
                                                     file.status = Dropzone.SUCCESS;
@@ -331,6 +335,18 @@ var apexDropzone = {
                                             pDropzone.emit("complete", file);
                                             // process file queue
                                             pDropzone.processQueue();
+                                        },
+                                        // XHR for upload progress
+                                        xhr: function() {
+                                            XhrObj = $.ajaxSettings.xhr();
+                                            if (XhrObj.upload) {
+                                                XhrObj.upload.addEventListener('progress', function(event) {
+                                                    apexDropzone.setUploadProgressChunked(event, pDropzone, currentChunk, fileChunkCount, file);
+                                                }, false);
+                                            } else {
+                                                console.log("Upload progress is not supported.");
+                                            }
+                                            return XhrObj;
                                         }
                                     });
                                 };

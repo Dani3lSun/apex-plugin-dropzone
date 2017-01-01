@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone APEX Plugin
- * Version: 2.0.1 (31.12.2016)
+ * Version: 2.0.2 (01.01.2017)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -198,6 +198,25 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
        AND apex_collections.n002 = l_total_chunk_count
      ORDER BY apex_collections.n001;
   --
+  -- Helper Functions
+  PROCEDURE write_htp_error(p_message IN VARCHAR2) IS
+  BEGIN
+    htp.init;
+    htp.p('{ "status": "error", "message": "' || p_message ||
+          '", "code": "' ||
+          regexp_replace(SQLERRM || ' ' ||
+                         dbms_utility.format_error_backtrace,
+                         '("|' || chr(10) || '|' || chr(13) || ',")',
+                         '') || '" }');
+  END write_htp_error;
+  --
+  PROCEDURE write_htp_success(p_message IN VARCHAR2) IS
+  BEGIN
+    htp.init;
+    htp.p('{ "status": "success", "message": "' || p_message ||
+          '", "code": "" }');
+  END write_htp_success;
+  --
 BEGIN
   --
   -- Debug Info
@@ -219,6 +238,7 @@ BEGIN
                            'UPLOAD');
   l_table_coll_name := upper(l_table_coll_name);
   --
+  --
   -- Upload
   --
   IF l_type = 'UPLOAD' THEN
@@ -232,27 +252,33 @@ BEGIN
         l_mime_type           := nvl(apex_application.g_x03,
                                      'application/octet-stream');
         l_current_chunk_count := to_number(apex_application.g_x04);
-        l_total_chunk_count   := to_number(apex_application.g_x05) - 1;
+        l_total_chunk_count   := to_number(apex_application.g_x05);
         l_chunk_clob          := apex_application.g_clob_01;
-        -- check if temp collection exist
-        IF NOT
-            apex_collection.collection_exists(p_collection_name => l_chunked_temp_coll) THEN
-          apex_collection.create_collection(l_chunked_temp_coll);
+        -- create / truncate collection on first chunk
+        IF l_current_chunk_count = 1 THEN
+          apex_collection.create_or_truncate_collection(l_chunked_temp_coll);
         END IF;
-        -- add collection member (only if l_chunk_clob not null)
+        -- add collection member (only if l_chunk_clob not null and chunk count > 1)
         IF dbms_lob.getlength(l_chunk_clob) IS NOT NULL THEN
           -- convert base64 chunk to BLOB
           l_chunk_blob := apex_web_service.clobbase642blob(p_clob => l_chunk_clob);
           --
-          apex_collection.add_member(p_collection_name => l_chunked_temp_coll,
-                                     p_c001            => l_filename, -- filename
-                                     p_c002            => l_mime_type, -- mime_type
-                                     p_n001            => l_current_chunk_count, -- current count from JS loop
-                                     p_n002            => l_total_chunk_count, -- total count of all chunks
-                                     p_blob001         => l_chunk_blob); -- BLOB base64 file chunk content
+          IF (l_total_chunk_count) > 1 THEN
+            --
+            apex_collection.add_member(p_collection_name => l_chunked_temp_coll,
+                                       p_c001            => l_filename, -- filename
+                                       p_c002            => l_mime_type, -- mime_type
+                                       p_n001            => l_current_chunk_count, -- current count from JS loop
+                                       p_n002            => l_total_chunk_count, -- total count of all chunks
+                                       p_blob001         => l_chunk_blob); -- BLOB base64 file chunk content
+          ELSE
+            l_blob := l_chunk_blob;
+          END IF;
         END IF;
-        -- last file chunk peace
-        IF l_current_chunk_count = l_total_chunk_count THEN
+        -- last file chunk peace (chunk count > 1 --> BLOB null)
+        IF l_current_chunk_count = l_total_chunk_count AND
+           dbms_lob.getlength(l_blob) IS NULL THEN
+          --
           dbms_lob.createtemporary(l_blob,
                                    FALSE,
                                    dbms_lob.session);
@@ -269,27 +295,20 @@ BEGIN
           END IF;
           --
         END IF;
-        -- status
-        htp.init;
-        htp.p('{ "status": "success", "message": "File Chunk ' ||
-              l_current_chunk_count || ' of ' || l_total_chunk_count ||
-              ' for ' || l_filename ||
-              ' successfully saved to Temp. APEX Collection ' ||
-              l_chunked_temp_coll || '", "code": "" }');
+        -- status return json
+        write_htp_success('File Chunk ' || l_current_chunk_count || ' of ' ||
+                          l_total_chunk_count || ' for ' || l_filename ||
+                          ' successfully saved to Temp. APEX Collection ' ||
+                          l_chunked_temp_coll);
         --
       EXCEPTION
         WHEN OTHERS THEN
-          -- status
-          htp.init;
-          htp.p('{ "status": "error", "message": "File Chunk ' ||
-                l_current_chunk_count || ' of ' || l_total_chunk_count ||
-                ' for ' || l_filename ||
-                ' NOT saved to Temp. APEX Collection ' ||
-                l_chunked_temp_coll || '", "code": "' ||
-                regexp_replace(SQLERRM || ' ' ||
-                               dbms_utility.format_error_backtrace,
-                               '("|' || chr(10) || '|' || chr(13) || ',")',
-                               '') || '" }');
+          -- status return json
+          write_htp_error('File Chunk ' || l_current_chunk_count || ' of ' ||
+                          l_total_chunk_count || ' for ' || l_filename ||
+                          ' NOT saved to Temp. APEX Collection ' ||
+                          l_chunked_temp_coll);
+          RETURN NULL;
       END;
       --
       -- normal file upload via f01 array (1 server request)
@@ -313,14 +332,10 @@ BEGIN
         --
       EXCEPTION
         WHEN OTHERS THEN
-          -- status
-          htp.init;
-          htp.p('{ "status": "error", "message": "File Upload could not be processed for ' ||
-                l_filename || '", "code": "' ||
-                regexp_replace(SQLERRM || ' ' ||
-                               dbms_utility.format_error_backtrace,
-                               '("|' || chr(10) || '|' || chr(13) || ',")',
-                               '') || '" }');
+          -- status return json
+          write_htp_error('File Upload could not be processed for ' ||
+                          l_filename);
+          RETURN NULL;
       END;
     END IF;
     --
@@ -343,23 +358,18 @@ BEGIN
                                    p_d001            => SYSDATE, -- date created
                                    p_n001            => l_random_file_id, -- random file id
                                    p_blob001         => l_blob); -- BLOB file content
-        -- status
-        htp.init;
-        htp.p('{ "status": "success", "message": "File ' || l_filename ||
-              ' successfully saved to APEX Collection ' ||
-              l_table_coll_name || '", "code": "" }');
+        -- status return json
+        write_htp_success('File ' || l_filename ||
+                          ' successfully saved to APEX Collection ' ||
+                          l_table_coll_name);
         --
       EXCEPTION
         WHEN OTHERS THEN
-          -- status
-          htp.init;
-          htp.p('{ "status": "error", "message": "File ' || l_filename ||
-                ' NOT saved to APEX Collection ' || l_table_coll_name ||
-                '", "code": "' ||
-                regexp_replace(SQLERRM || ' ' ||
-                               dbms_utility.format_error_backtrace,
-                               '("|' || chr(10) || '|' || chr(13) || ',")',
-                               '') || '" }');
+          -- status return json
+          write_htp_error('File ' || l_filename ||
+                          ' NOT saved to APEX Collection ' ||
+                          l_table_coll_name);
+          RETURN NULL;
       END;
       --
       -- Save to custom Table
@@ -391,23 +401,18 @@ BEGIN
           EXECUTE IMMEDIATE l_insert_sql
             USING l_filename, l_mime_type, l_blob, SYSDATE;
         END IF;
-        -- status
-        htp.init;
-        htp.p('{ "status": "success", "message": "File ' || l_filename ||
-              ' successfully saved to Custom Table ' || l_table_coll_name ||
-              '", "code": "" }');
+        -- status return json
+        write_htp_success('File ' || l_filename ||
+                          ' successfully saved to Custom Table ' ||
+                          l_table_coll_name);
         --
       EXCEPTION
         WHEN OTHERS THEN
-          -- status
-          htp.init;
-          htp.p('{ "status": "error", "message": "File ' || l_filename ||
-                ' NOT saved to Custom Table ' || l_table_coll_name ||
-                '", "code": "' ||
-                regexp_replace(SQLERRM || ' ' ||
-                               dbms_utility.format_error_backtrace,
-                               '("|' || chr(10) || '|' || chr(13) || ',")',
-                               '') || '" }');
+          -- status return json
+          write_htp_error('File ' || l_filename ||
+                          ' NOT saved to Custom Table ' ||
+                          l_table_coll_name);
+          RETURN NULL;
       END;
       --
     END IF;
@@ -435,23 +440,18 @@ BEGIN
                                           p_seq             => l_coll_seq_id);
           END IF;
         END IF;
-        -- status
-        htp.init;
-        htp.p('{ "status": "success", "message": "File ' || l_filename ||
-              ' successfully deleted from APEX Collection ' ||
-              l_table_coll_name || '", "code": "" }');
+        -- status return json
+        write_htp_success('File ' || l_filename ||
+                          ' successfully deleted from APEX Collection ' ||
+                          l_table_coll_name);
         --
       EXCEPTION
         WHEN OTHERS THEN
-          -- status
-          htp.init;
-          htp.p('{ "status": "error", "message": "File ' || l_filename ||
-                ' NOT deleted from APEX Collection ' || l_table_coll_name ||
-                '", "code": "' ||
-                regexp_replace(SQLERRM || ' ' ||
-                               dbms_utility.format_error_backtrace,
-                               '("|' || chr(10) || '|' || chr(13) || ',")',
-                               '') || '" }');
+          -- status return json
+          write_htp_error('File ' || l_filename ||
+                          ' NOT deleted from APEX Collection ' ||
+                          l_table_coll_name);
+          RETURN NULL;
       END;
       --
       -- Delete from custom Table
@@ -466,23 +466,18 @@ BEGIN
         -- execute delete
         EXECUTE IMMEDIATE l_delete_sql
           USING l_filename;
-        -- status
-        htp.init;
-        htp.p('{ "status": "success", "message": "File ' || l_filename ||
-              ' successfully deleted from Custom Table ' ||
-              l_table_coll_name || '", "code": "" }');
+        -- status return json
+        write_htp_success('File ' || l_filename ||
+                          ' successfully deleted from Custom Table ' ||
+                          l_table_coll_name);
         --
       EXCEPTION
         WHEN OTHERS THEN
-          -- status
-          htp.init;
-          htp.p('{ "status": "error", "message": "File ' || l_filename ||
-                ' NOT deleted from Custom Table ' || l_table_coll_name ||
-                '", "code": "' ||
-                regexp_replace(SQLERRM || ' ' ||
-                               dbms_utility.format_error_backtrace,
-                               '("|' || chr(10) || '|' || chr(13) || ',")',
-                               '') || '" }');
+          -- status return json
+          write_htp_error('File ' || l_filename ||
+                          ' NOT deleted from Custom Table ' ||
+                          l_table_coll_name);
+          RETURN NULL;
       END;
       --
     END IF;
@@ -492,12 +487,8 @@ BEGIN
   --
 EXCEPTION
   WHEN OTHERS THEN
-    -- status
-    htp.init;
-    htp.p('{ "status": "error", "message": "General Error occured in Dropzone AJAX function", "code": "' ||
-          regexp_replace(SQLERRM || ' ' ||
-                         dbms_utility.format_error_backtrace,
-                         '("|' || chr(10) || '|' || chr(13) || ',")',
-                         '') || '" }');
+    -- status return json
+    write_htp_error('General Error occured in Dropzone AJAX Function');
+    RETURN NULL;
     --
 END ajax_dropzone;

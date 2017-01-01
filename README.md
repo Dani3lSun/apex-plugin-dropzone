@@ -7,6 +7,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 2.0.2 - Performance Improvements for Chunked File Uploads / Improved Client Side Debug Logging / Improved Server AJAX Error Handling
+
 #### 2.0.1 - Performance Improvements for Chunked File Uploads / Improved Client Side Debug Logging / Oracle Database EPG Note in Docs & Help Pages
 
 #### 2.0.0 - Complete new Version built from ground up. Now much easier to use and with more features
@@ -104,12 +106,12 @@ The plugin settings are highly customizable and you can change:
   - **Normal**
     - **AJAX:** Async Method
 
-    - This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle Database EPG, Oracle ORDS, Apache, Tomcat. But for large Files the **maxPostSize** Parameter have to be increased on Tomcat Servers (Default 2MB).
+    - This Upload Method encodes the File into a Base64 String. This String is then split into an 30kb Array which sends the encoded/splitted File in **1 Request** to the Server. This Method works on all Web Servers including Oracle OHS, Oracle WebTier, Oracle Database EPG, Oracle ORDS, Apache, Tomcat. But for large Files the **maxPostSize** Parameter have to be increased on Tomcat Servers (Default 2MB). **Max. File size should not exceed ~50MB.**
 
   - **Chunked**
     - **AJAX:** Async Method
 
-    - This Upload Method encodes the File into a Base64 String. This String is then split into an 1MB Array which sends the encoded/splitted File in **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS, Oracle WebTier or Oracle Database EPG! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. But if you expect a lot of big files that get uploaded this Method should be fine for that!
+    - This Upload Method splits a File into 1MB Pieces. Then this 1MB Chunks are base64 encoded and sent via **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS, Oracle WebTier or Oracle Database EPG! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**  or want to Upload **large Files (> 50MB)**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. But if you expect a lot of big files that get uploaded this Method should be fine for that!
 
 - **Delete Files**
 

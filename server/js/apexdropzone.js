@@ -1,6 +1,6 @@
 // APEX Dropzone functions
 // Author: Daniel Hochleitner
-// Version: 2.0.1
+// Version: 2.0.2
 
 // global namespace
 var apexDropzone = {
@@ -70,18 +70,16 @@ var apexDropzone = {
     },
     // Asynchronous Loop Function
     asyncLoop: function(iterations, func, callback) {
-        var index = 0;
+        var index = 1;
         var done = false;
         var loop = {
             next: function() {
                 if (done) {
                     return;
                 }
-
-                if (index < iterations) {
+                if (index <= iterations) {
                     index++;
                     func(loop);
-
                 } else {
                     done = true;
                     callback();
@@ -117,7 +115,7 @@ var apexDropzone = {
                         pDropzone.emit('uploadprogress', file, 10, file.size / 10);
 
                         // AJAX call to upload and process files (No apex.server.plugin because 5.1 doesn´t support xhr)
-                        apex.jQuery.ajax({
+                        file.xhr = apex.jQuery.ajax({
                             dataType: 'text',
                             type: 'POST',
                             url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
@@ -224,109 +222,121 @@ var apexDropzone = {
             reader.onload = (function(pFile) {
                 return function(e) {
                     if (pFile) {
-                        // BinaryInt8Array to base64
-                        var base64 = apexDropzone.binaryArray2base64(e.target.result);
-                        // split base64 clob string to file chunk array length 1MB
-                        var fileChunkArray = [];
                         var fileChunk;
+                        var fileChunkBase64;
                         var currentChunk;
                         var chunkSize = 1024 * 1024;
-                        fileChunkArray = apexDropzone.clob2Array(base64, chunkSize, fileChunkArray);
-                        var fileChunkCount = fileChunkArray.length;
-                        //set upload progress 10%
-                        pDropzone.emit('uploadprogress', file, 10, file.size / 10);
+                        var chunkStart;
+                        var chunkEnd;
+                        var fileChunkCount = Math.ceil(file.size / chunkSize);
 
-                        // loop over 1MB file/base64 chunks
+                        // loop over 1MB file chunks
                         apexDropzone.asyncLoop(fileChunkCount, function(loop) {
                             currentChunk = loop.iteration();
-                            fileChunk = fileChunkArray[currentChunk];
+                            chunkStart = chunkSize * (currentChunk - 1);
+                            chunkEnd = chunkStart + chunkSize;
+                            // Logging
+                            apex.debug.log(file.name + ' currentChunk', currentChunk);
+                            apex.debug.log(file.name + ' chunkStart', chunkStart);
+                            apex.debug.log(file.name + ' chunkEnd', chunkEnd);
 
-                            // AJAX call to upload and process files (No apex.server.plugin because 5.1 doesn´t support xhr)
-                            apex.jQuery.ajax({
-                                dataType: 'text',
-                                type: 'POST',
-                                url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
-                                async: true,
-                                traditional: true,
-                                data: {
-                                    x01: 'UPLOAD',
-                                    x02: file.name,
-                                    x03: file.type,
-                                    x04: currentChunk,
-                                    x05: fileChunkCount,
-                                    p_clob_01: fileChunk,
-                                    p_request: 'PLUGIN=' + pAjaxIdentifier,
-                                    p_flow_id: $v('pFlowId'),
-                                    p_flow_step_id: $v('pFlowStepId'),
-                                    p_instance: $v('pInstance'),
-                                    p_debug: $v('pdebug')
-                                },
-                                // SUCCESS function
-                                success: function(pData) {
-                                    //sleep hack for large number of small files (only if last chunk was successful)
-                                    if (currentChunk == fileChunkCount - 1) {
-                                        apexDropzone.sleepUntil(pWaitTime);
-                                    }
-                                    // check server status
-                                    var vJsonReturn;
-                                    try {
-                                        vJsonReturn = jQuery.parseJSON(pData);
-                                    } catch (err) {
-                                        apex.debug.log('uploadDzFilesChunked Response ParseError', err);
-                                        vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "uploadDzFilesChunked Response ParseError", "code": "AJAX Callback (pData) ParseError" }');
-                                    }
-                                    // response error
-                                    if (vJsonReturn.status == 'error') {
-                                        // APEX event
-                                        apex.debug.log('uploadDzFilesChunked Error', vJsonReturn.message, vJsonReturn.code);
-                                        apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-error', vJsonReturn);
-                                        // file status
-                                        file.status = Dropzone.ERROR;
-                                        pDropzone.emit("error", file, "Database error during file upload");
-                                        pDropzone.emit("complete", file);
-                                        // process file queue
-                                        pDropzone.processQueue();
-                                        // response success
-                                    } else if (vJsonReturn.status == 'success') {
-                                        // APEX event
-                                        apex.debug.log('uploadDzFilesChunked Success', vJsonReturn.message);
-                                        apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-success', pData);
-                                        // set file progress
-                                        apexDropzone.setUploadProgressChunked(currentChunk, fileChunkCount, pDropzone, file);
-                                        // file status (only if last chunk was successful)
-                                        if (currentChunk == fileChunkCount - 1) {
-                                            file.status = Dropzone.SUCCESS;
-                                            pDropzone.emit("success", file, 'success', null);
+                            // slice file and build base64 per chunk
+                            fileChunk = file.slice(chunkStart, chunkEnd);
+                            var reader = new FileReader();
+                            reader.onload = (function(fileChunk) {
+                                return function(eChunk) {
+                                    var fileChunkBase64 = apexDropzone.binaryArray2base64(eChunk.target.result);
+
+                                    // AJAX call to upload and process files (No apex.server.plugin because 5.1 doesn´t support xhr)
+                                    file.xhr = apex.jQuery.ajax({
+                                        dataType: 'text',
+                                        type: 'POST',
+                                        url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
+                                        async: true,
+                                        traditional: true,
+                                        data: {
+                                            x01: 'UPLOAD',
+                                            x02: file.name,
+                                            x03: file.type,
+                                            x04: currentChunk,
+                                            x05: fileChunkCount,
+                                            p_clob_01: fileChunkBase64,
+                                            p_request: 'PLUGIN=' + pAjaxIdentifier,
+                                            p_flow_id: $v('pFlowId'),
+                                            p_flow_step_id: $v('pFlowStepId'),
+                                            p_instance: $v('pInstance'),
+                                            p_debug: $v('pdebug')
+                                        },
+                                        // SUCCESS function
+                                        success: function(pData) {
+                                            //sleep hack for large number of small files (only if last chunk was successful)
+                                            if (currentChunk == fileChunkCount) {
+                                                apexDropzone.sleepUntil(pWaitTime);
+                                            }
+                                            // check server status
+                                            var vJsonReturn;
+                                            try {
+                                                vJsonReturn = jQuery.parseJSON(pData);
+                                            } catch (err) {
+                                                apex.debug.log('uploadDzFilesChunked Response ParseError', err);
+                                                vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "uploadDzFilesChunked Response ParseError", "code": "AJAX Callback (pData) ParseError" }');
+                                            }
+                                            // response error
+                                            if (vJsonReturn.status == 'error') {
+                                                // APEX event
+                                                apex.debug.log('uploadDzFilesChunked Error', vJsonReturn.message, vJsonReturn.code);
+                                                apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-error', vJsonReturn);
+                                                // file status
+                                                file.status = Dropzone.ERROR;
+                                                pDropzone.emit("error", file, "Database error during file upload");
+                                                pDropzone.emit("complete", file);
+                                                // process file queue
+                                                pDropzone.processQueue();
+                                                // response success
+                                            } else if (vJsonReturn.status == 'success') {
+                                                // APEX event
+                                                apex.debug.log('uploadDzFilesChunked Success', vJsonReturn.message);
+                                                apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-success', pData);
+                                                // set file progress
+                                                apexDropzone.setUploadProgressChunked(currentChunk, fileChunkCount, pDropzone, file);
+                                                // file status (only if last chunk was successful)
+                                                if (currentChunk == fileChunkCount) {
+                                                    file.status = Dropzone.SUCCESS;
+                                                    pDropzone.emit("success", file, 'success', null);
+                                                    pDropzone.emit("complete", file);
+                                                    // process file queue
+                                                    pDropzone.processQueue();
+                                                }
+                                            }
+                                            // next loop iteration
+                                            loop.next();
+                                        },
+                                        // ERROR function
+                                        error: function(xhr, pMessage) {
+                                            //sleep hack for large number of small files
+                                            apexDropzone.sleepUntil(pWaitTime);
+                                            // APEX event
+                                            apex.debug.log('uploadDzFilesChunked Error', pMessage);
+                                            apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-error', pMessage);
+                                            // set file status ERROR
+                                            file.status = Dropzone.ERROR;
+                                            // build message for error template
+                                            var message = "";
+                                            if (pMessage) {
+                                                message = pMessage;
+                                            } else {
+                                                message = 'Error processing file';
+                                            }
+                                            pDropzone.emit("error", file, message, xhr);
                                             pDropzone.emit("complete", file);
                                             // process file queue
                                             pDropzone.processQueue();
                                         }
-                                    }
-                                    // next loop iteration
-                                    loop.next();
-                                },
-                                // ERROR function
-                                error: function(xhr, pMessage) {
-                                    //sleep hack for large number of small files
-                                    apexDropzone.sleepUntil(pWaitTime);
-                                    // APEX event
-                                    apex.debug.log('uploadDzFilesChunked Error', pMessage);
-                                    apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-error', pMessage);
-                                    // set file status ERROR
-                                    file.status = Dropzone.ERROR;
-                                    // build message for error template
-                                    var message = "";
-                                    if (pMessage) {
-                                        message = pMessage;
-                                    } else {
-                                        message = 'Error processing file';
-                                    }
-                                    pDropzone.emit("error", file, message, xhr);
-                                    pDropzone.emit("complete", file);
-                                    // process file queue
-                                    pDropzone.processQueue();
-                                }
-                            });
+                                    });
+                                };
+                            })(fileChunk);
+                            reader.readAsArrayBuffer(fileChunk);
+
                         }, function() {
                             apex.debug.log('uploadDzFilesChunked Loop ended');
                         });

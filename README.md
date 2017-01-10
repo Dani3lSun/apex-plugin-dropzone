@@ -7,6 +7,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 2.0.3 - New Style *Grey Dashed Border/Background* / Improved deleting Files (No longer via Filename, instead the APEX Collection Seq-ID or PK Value of Custom Table is used)
+
 #### 2.0.2 - Performance Improvements for Chunked File Uploads / Improved Upload Status for Chunked File Uploads / Improved Client Side Debug Logging / Improved Server AJAX Error Handling
 
 #### 2.0.1 - Performance Improvements for Chunked File Uploads / Improved Client Side Debug Logging / Oracle Database EPG Note in Docs & Help Pages
@@ -79,7 +81,7 @@ The plugin settings are highly customizable and you can change:
 
 - **Storage Type**
 
-  - Choose where the uploaded files are saved. You can either save your files to a APEX collection or to a custom table.
+  - Choose where the uploaded Files are saved. You can either save your Files to a APEX Collection or to a Custom Table.
 
 - **Collection / Table Name**
 
@@ -96,6 +98,10 @@ The plugin settings are highly customizable and you can change:
 - **BLOB Column**
 
   - Column of your custom Table which holds the information for the File Content (BLOB). Only if **Storage Type** is set to **Custom Table**
+
+  - **PK Column**
+
+    - Primary Key (PK) Column of your custom file Table. Only if **Storage Type** is set to **Custom Table**
 
 - **Date Column**
 
@@ -199,51 +205,51 @@ The plugin settings are highly customizable and you can change:
 
 
 ## Plugin Events
-- **Dropzone added file**
+- **Dropzone File added**
 
   - DA event that fires when a single file was added to the Dropzone Region (Client Side)
   - this.data holds the file element, e.g file.name or file.size
 
-- **Dropzone chunked upload file success (AJAX)**
+- **Dropzone Chunked File Upload Success (AJAX)**
 
   - DA event that fires when uploading 1 Chunk of a File was successful (Server Side) (Upload Mechanism **Chunked**)
   - this.data holds the Server response object
 
-- **Dropzone chunked upload file error (AJAX)**
+- **Dropzone Chunked File Upload Error (AJAX)**
 
   - DA event that fires when uploading 1 Chunk of a File has an error (Server Side) (Upload Mechanism **Chunked**)
   - this.data holds the Server response object
 
-- **Dropzone upload file success (AJAX)**
+- **Dropzone File Upload Success (AJAX)**
 
   - DA event that fires when uploading a File was successful (Server Side) (Upload Mechanism **Normal**)
   - this.data holds the Server response object
 
-- **Dropzone upload file error (AJAX)**
+- **Dropzone File Upload Error (AJAX)**
 
   - DA event that fires when uploading a File has an error (Server Side) (Upload Mechanism **Normal**)
   - this.data holds the Server response object
 
-- **Dropzone upload completed**
+- **Dropzone Upload completed**
 
   - DA event that fires when uploading all files completed (Client Side)
 
-- **Dropzone deleted file**
+- **Dropzone File deleted**
 
   - DA event that fires if the Remove File Link of a File is pressed (Client Side)
   - this.data holds the file element, e.g file.name or file.size
 
-- **Dropzone delete file success (AJAX)**
+- **Dropzone File Delete Success (AJAX)**
 
   - DA event that fires when deleting a single files was successful (Server Side)
   - this.data holds the Server response object
 
-- **Dropzone delete file error (AJAX)**
+- **Dropzone File Delete Error (AJAX)**
 
   - DA event that fires when deleting a single files has an error (Server Side)
   - this.data holds the Server response object
 
-- **Dropzone max files exceeded**
+- **Dropzone max Files exceeded**
 
   - DA event that fires per file when more files are added to the Dropzone than allowed (Client Side)
   - this.data holds the file element, e.g file.name or file.size
@@ -252,6 +258,13 @@ The plugin settings are highly customizable and you can change:
 
   - DA that fires from time to time during upload of all files and return the Total Upload Progress (Client Side)
   - this.data holds the totalPercentage element
+
+- **Dropzone File Error**
+  - DA that fires when processing a file has an error (Client Side)
+  - this.data holds the file element, e.g file.name, file.size or file.errorMessage
+
+- **Dropzone Dragging File over Region**
+  - DA that fires when dragging a file over the Dropzone Region (Client Side)
 
 
 ## How to use

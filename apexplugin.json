@@ -1,35 +1,35 @@
 {
-  "name" : "Dropzone",
-  "version" : "2.0.2",
-  "description" : "Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads.",
-  "keywords" : ["dropzone","drag","drop","file","upload","multi","multiple"],
-  "homepage" : "https://github.com/Dani3lSun/apex-plugin-dropzone",
-  "bugs" : {
-    "url" : "https://github.com/Dani3lSun/apex-plugin-dropzone/issues",
-    "email" : "daniel@danielh.de"
-  },
-  "license" : "MIT",
-  "author" : {
-    "name" : "Daniel Hochleitner",
-    "email" : "daniel@danielh.de",
-    "url" : "https://danielhochleitner.de",
-    "twitter" : "Dani3lSun",
-    "donationUrl" : "https://www.paypal.me/DanielHochleitnerIT/3"
-  },
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/Dani3lSun/apex-plugin-dropzone.git"
-  },
-  "oracle" : {
-    "versions" : ["11.2.0.1", "12.1.0.1"],
-    "apex" : {
-      "versions" : ["5.0.0"],
-      "plugin" : {
-        "internalName" : "DE.DANIELH.DROPZONE",
-        "type" : "region",
-        "demo" : "https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN",
-        "previewImage" : "https://raw.githubusercontent.com/Dani3lSun/apex-plugin-dropzone/master/preview.gif"
-      }
+    "name": "Dropzone",
+    "version": "2.0.3",
+    "description": "Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads.",
+    "keywords": ["dropzone", "drag", "drop", "file", "upload", "multi", "multiple"],
+    "homepage": "https://github.com/Dani3lSun/apex-plugin-dropzone",
+    "bugs": {
+        "url": "https://github.com/Dani3lSun/apex-plugin-dropzone/issues",
+        "email": "daniel@danielh.de"
+    },
+    "license": "MIT",
+    "author": {
+        "name": "Daniel Hochleitner",
+        "email": "daniel@danielh.de",
+        "url": "https://danielhochleitner.de",
+        "twitter": "Dani3lSun",
+        "donationUrl": "https://www.paypal.me/DanielHochleitnerIT/3"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Dani3lSun/apex-plugin-dropzone.git"
+    },
+    "oracle": {
+        "versions": ["11.2.0.1", "12.1.0.1"],
+        "apex": {
+            "versions": ["5.0.0", "5.1.0"],
+            "plugin": {
+                "internalName": "DE.DANIELH.DROPZONE",
+                "type": "region",
+                "demo": "https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN",
+                "previewImage": "https://raw.githubusercontent.com/Dani3lSun/apex-plugin-dropzone/master/preview.gif"
+            }
+        }
     }
-  }
 }

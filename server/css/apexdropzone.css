@@ -1,7 +1,16 @@
+/*
+APEX Dropzone CSS
+Author: Daniel Hochleitner
+Version: 2.0.3
+*/
+
 .dz-message {
-    padding-top: 20px;
     font-size: 1.4em;
     font-weight: 400;
+}
+
+.dropzone .dz-preview.dz-image-preview {
+    background: none;
 }
 
 .dz-style1 {
@@ -21,5 +30,13 @@
     border: 3px dashed #ff0026;
     border-radius: 5px;
     background: white;
+    overflow: auto;
+}
+
+.dz-style4 {
+    border: 2px dashed #8E8E93;
+    border-radius: 10px;
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #707070;
     overflow: auto;
 }

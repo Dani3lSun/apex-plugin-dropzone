@@ -1,6 +1,8 @@
-// APEX Dropzone functions
-// Author: Daniel Hochleitner
-// Version: 2.0.2
+/*
+APEX Dropzone JS
+Author: Daniel Hochleitner
+Version: 2.0.3
+*/
 
 // global namespace
 var apexDropzone = {
@@ -160,6 +162,8 @@ var apexDropzone = {
                                     pDropzone.emit("error", file, "Database error during file upload");
                                     // response success
                                 } else if (vJsonReturn.status == 'success') {
+                                    // set file id to return id
+                                    file.id = vJsonReturn.id;
                                     // APEX event
                                     apex.debug.log('uploadDzFiles Success', vJsonReturn.message);
                                     apex.event.trigger('#' + pRegionId, 'dropzone-upload-success', pData);
@@ -305,6 +309,9 @@ var apexDropzone = {
                                                 apex.event.trigger('#' + pRegionId, 'dropzone-upload-chunk-success', pData);
                                                 // file status (only if last chunk was successful)
                                                 if (currentChunk == fileChunkCount) {
+                                                    // set file id to return id
+                                                    file.id = vJsonReturn.id;
+                                                    // file status
                                                     file.status = Dropzone.SUCCESS;
                                                     pDropzone.emit("success", file, 'success', null);
                                                     pDropzone.emit("complete", file);
@@ -379,6 +386,7 @@ var apexDropzone = {
             data: {
                 x01: 'DELETE',
                 x02: pFile.name,
+                x03: pFile.id,
                 p_request: 'PLUGIN=' + pAjaxIdentifier,
                 p_flow_id: $v('pFlowId'),
                 p_flow_step_id: $v('pFlowStepId'),
@@ -556,6 +564,17 @@ var apexDropzone = {
         myDropzone.on('totaluploadprogress', function(totalPercentage) {
             // add apex event
             apex.event.trigger('#' + pRegionId, 'dropzone-totalupload-progress', totalPercentage);
+        });
+        // After a user drags a file over the dropzone
+        myDropzone.on('dragenter', function() {
+            // add apex event
+            apex.event.trigger('#' + pRegionId, 'dropzone-drag-over');
+        });
+        // After an file error occured
+        myDropzone.on('error', function(file, errorMessage) {
+            // add apex event
+            file.errorMessage = errorMessage;
+            apex.event.trigger('#' + pRegionId, 'dropzone-file-error', file);
         });
         // After complete: apex event / clear dropzone data
         myDropzone.on("complete", function() {

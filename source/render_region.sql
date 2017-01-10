@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone APEX Plugin
- * Version: 2.0.2 (01.01.2017)
+ * Version: 2.0.3 (10.01.2017)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -79,9 +79,12 @@ BEGIN
     -- style 2 (blue dashed border)
   ELSIF l_dz_style = 'STYLE2' THEN
     l_dz_class := 'dz-style2';
-    -- style 2 (red dashed border)
+    -- style 3 (red dashed border)
   ELSIF l_dz_style = 'STYLE3' THEN
     l_dz_class := 'dz-style3';
+    -- style 4 (grey background and grey dashed border)
+  ELSIF l_dz_style = 'STYLE4' THEN
+    l_dz_class := 'dz-style4';
   END IF;
   --
   htp.p('<div id="' || l_region_id || '" class="dropzone ' || l_dz_class ||
@@ -166,6 +169,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   l_mimetype_column  p_region.attribute_04%TYPE := p_region.attribute_04;
   l_blob_column      p_region.attribute_05%TYPE := p_region.attribute_05;
   l_date_column      p_region.attribute_06%TYPE := p_region.attribute_06;
+  l_pk_column        p_region.attribute_21%TYPE := p_region.attribute_21;
   l_upload_mechanism p_region.attribute_15%TYPE := p_region.attribute_15;
   l_delete_files     p_region.attribute_20%TYPE := p_region.attribute_20;
   -- other variables
@@ -178,17 +182,12 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   l_random_file_id      NUMBER;
   l_insert_sql          VARCHAR2(32767);
   l_delete_sql          VARCHAR2(32767);
-  l_coll_seq_id         NUMBER;
+  l_insert_id           NUMBER;
+  l_delete_id           NUMBER;
   l_current_chunk_count NUMBER;
   l_total_chunk_count   NUMBER;
   l_chunk_clob          CLOB;
   l_chunk_blob          BLOB;
-  -- cursor for files to delete
-  CURSOR l_cur_delete_files IS
-    SELECT apex_collections.seq_id
-      FROM apex_collections
-     WHERE upper(apex_collections.collection_name) = l_table_coll_name
-       AND apex_collections.c001 = l_filename;
   -- cursor for file chunks
   CURSOR l_cur_chunk_files IS
     SELECT apex_collections.blob001 AS chunk_blob
@@ -199,7 +198,8 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
      ORDER BY apex_collections.n001;
   --
   -- Helper Functions
-  PROCEDURE write_htp_error(p_message IN VARCHAR2) IS
+  PROCEDURE write_htp_error(p_message IN VARCHAR2,
+                            p_id      IN VARCHAR2 := NULL) IS
   BEGIN
     htp.init;
     htp.p('{ "status": "error", "message": "' || p_message ||
@@ -207,14 +207,15 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
           regexp_replace(SQLERRM || ' ' ||
                          dbms_utility.format_error_backtrace,
                          '("|' || chr(10) || '|' || chr(13) || ',")',
-                         '') || '" }');
+                         '') || '", "id": "' || p_id || '" }');
   END write_htp_error;
   --
-  PROCEDURE write_htp_success(p_message IN VARCHAR2) IS
+  PROCEDURE write_htp_success(p_message IN VARCHAR2,
+                              p_id      IN VARCHAR2 := NULL) IS
   BEGIN
     htp.init;
     htp.p('{ "status": "success", "message": "' || p_message ||
-          '", "code": "" }');
+          '", "code": "", "id": "' || p_id || '" }');
   END write_htp_success;
   --
 BEGIN
@@ -352,16 +353,17 @@ BEGIN
           apex_collection.create_collection(l_table_coll_name);
         END IF;
         -- add collection member
-        apex_collection.add_member(p_collection_name => l_table_coll_name,
-                                   p_c001            => l_filename, -- filename
-                                   p_c002            => l_mime_type, -- mime_type
-                                   p_d001            => SYSDATE, -- date created
-                                   p_n001            => l_random_file_id, -- random file id
-                                   p_blob001         => l_blob); -- BLOB file content
+        l_insert_id := apex_collection.add_member(p_collection_name => l_table_coll_name,
+                                                  p_c001            => l_filename, -- filename
+                                                  p_c002            => l_mime_type, -- mime_type
+                                                  p_d001            => SYSDATE, -- date created
+                                                  p_n001            => l_random_file_id, -- random file id
+                                                  p_blob001         => l_blob); -- BLOB file content
         -- status return json
-        write_htp_success('File ' || l_filename ||
-                          ' successfully saved to APEX Collection ' ||
-                          l_table_coll_name);
+        write_htp_success(p_message => 'File ' || l_filename ||
+                                       ' successfully saved to APEX Collection ' ||
+                                       l_table_coll_name,
+                          p_id      => l_insert_id);
         --
       EXCEPTION
         WHEN OTHERS THEN
@@ -384,10 +386,13 @@ BEGIN
                           dbms_assert.simple_sql_name(l_filename_column) || ', ' ||
                           dbms_assert.simple_sql_name(l_mimetype_column) || ', ' ||
                           dbms_assert.simple_sql_name(l_blob_column) ||
-                          ') VALUES (:filename_value,:mimetype_value,:blob_value)';
+                          ') VALUES (:filename_value,:mimetype_value,:blob_value) RETURNING ' ||
+                          dbms_assert.simple_sql_name(l_pk_column) ||
+                          ' INTO :pk_value';
           -- execute insert
           EXECUTE IMMEDIATE l_insert_sql
-            USING l_filename, l_mime_type, l_blob;
+            USING l_filename, l_mime_type, l_blob
+            RETURNING INTO l_insert_id;
           -- with optional date column
         ELSE
           l_insert_sql := 'INSERT INTO ' ||
@@ -396,15 +401,19 @@ BEGIN
                           dbms_assert.simple_sql_name(l_mimetype_column) || ', ' ||
                           dbms_assert.simple_sql_name(l_blob_column) || ', ' ||
                           dbms_assert.simple_sql_name(l_date_column) ||
-                          ') VALUES (:filename_value,:mimetype_value,:blob_value,:date_value)';
+                          ') VALUES (:filename_value,:mimetype_value,:blob_value,:date_value) RETURNING ' ||
+                          dbms_assert.simple_sql_name(l_pk_column) ||
+                          ' INTO :pk_value';
           -- execute insert
           EXECUTE IMMEDIATE l_insert_sql
-            USING l_filename, l_mime_type, l_blob, SYSDATE;
+            USING l_filename, l_mime_type, l_blob, SYSDATE
+            RETURNING INTO l_insert_id;
         END IF;
         -- status return json
-        write_htp_success('File ' || l_filename ||
-                          ' successfully saved to Custom Table ' ||
-                          l_table_coll_name);
+        write_htp_success(p_message => 'File ' || l_filename ||
+                                       ' successfully saved to Custom Table ' ||
+                                       l_table_coll_name,
+                          p_id      => l_insert_id);
         --
       EXCEPTION
         WHEN OTHERS THEN
@@ -422,28 +431,34 @@ BEGIN
   -- Delete File
   --
   IF l_type = 'DELETE' AND l_delete_files = 'true' THEN
-    l_filename := apex_application.g_x02;
+    l_filename  := apex_application.g_x02;
+    l_delete_id := to_number(apex_application.g_x03);
     --
     -- Delete from APEX Collection
-    IF l_storage_type = 'COLLECTION' AND l_filename IS NOT NULL THEN
+    IF l_storage_type = 'COLLECTION' THEN
+      --
       BEGIN
         -- check if collection exist
         IF apex_collection.collection_exists(p_collection_name => l_table_coll_name) THEN
-          -- get seq_id from files collection
-          OPEN l_cur_delete_files;
-          FETCH l_cur_delete_files
-            INTO l_coll_seq_id;
-          CLOSE l_cur_delete_files;
           -- delete collection member (only if Seq-ID not null)
-          IF l_coll_seq_id IS NOT NULL THEN
+          IF l_delete_id IS NOT NULL THEN
             apex_collection.delete_member(p_collection_name => l_table_coll_name,
-                                          p_seq             => l_coll_seq_id);
+                                          p_seq             => l_delete_id);
+            -- status return json
+            write_htp_success('File ' || l_filename ||
+                              ' successfully deleted from APEX Collection ' ||
+                              l_table_coll_name);
+          ELSE
+            -- status return json
+            write_htp_error('File-ID missing for File ' || l_filename ||
+                            '. NOT deleted from APEX Collection ' ||
+                            l_table_coll_name);
           END IF;
+        ELSE
+          -- status return json
+          write_htp_error('APEX Collection ' || l_table_coll_name ||
+                          ' missing for File ' || l_filename);
         END IF;
-        -- status return json
-        write_htp_success('File ' || l_filename ||
-                          ' successfully deleted from APEX Collection ' ||
-                          l_table_coll_name);
         --
       EXCEPTION
         WHEN OTHERS THEN
@@ -455,21 +470,28 @@ BEGIN
       END;
       --
       -- Delete from custom Table
-    ELSIF l_storage_type = 'TABLE' AND l_filename IS NOT NULL THEN
+    ELSIF l_storage_type = 'TABLE' THEN
       BEGIN
         -- dynamic delete statement
-        l_delete_sql := 'DELETE FROM ' ||
-                        dbms_assert.sql_object_name(l_table_coll_name) ||
-                        ' WHERE ' ||
-                        dbms_assert.simple_sql_name(l_filename_column) ||
-                        ' = :filename_value';
-        -- execute delete
-        EXECUTE IMMEDIATE l_delete_sql
-          USING l_filename;
-        -- status return json
-        write_htp_success('File ' || l_filename ||
-                          ' successfully deleted from Custom Table ' ||
+        IF l_delete_id IS NOT NULL THEN
+          l_delete_sql := 'DELETE FROM ' ||
+                          dbms_assert.sql_object_name(l_table_coll_name) ||
+                          ' WHERE ' ||
+                          dbms_assert.simple_sql_name(l_pk_column) ||
+                          ' = :pk_value';
+          -- execute delete
+          EXECUTE IMMEDIATE l_delete_sql
+            USING l_delete_id;
+          -- status return json
+          write_htp_success('File ' || l_filename ||
+                            ' successfully deleted from Custom Table ' ||
+                            l_table_coll_name);
+        ELSE
+          -- status return json
+          write_htp_error('File-ID missing for File ' || l_filename ||
+                          '. NOT deleted from Custom Table ' ||
                           l_table_coll_name);
+        END IF;
         --
       EXCEPTION
         WHEN OTHERS THEN

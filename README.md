@@ -7,6 +7,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 2.0.4 - Added much more detailed Total Upload Progress
+
 #### 2.0.3 - New Style *Grey Dashed Border/Background* / Improved deleting Files (No longer via Filename, instead the APEX Collection Seq-ID or PK Value of Custom Table is used)
 
 #### 2.0.2 - Performance Improvements for Chunked File Uploads / Improved Upload Status for Chunked File Uploads / Improved Client Side Debug Logging / Improved Server AJAX Error Handling

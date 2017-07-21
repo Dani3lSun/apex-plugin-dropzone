@@ -27,9 +27,12 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 - Much better Internationalization and App Wide definition of Messages
 - And of course all the "old" Features as well
 
-*Upgrade Note: Thus the Plugin is rewritten from ground up, Version 2.0.0 is completely incompatible with prior Versions!
-It is recommended to install Version 2.0.0 beside Version 1.XX and replace all Dropzone Regions in your App.
-If you didn´t touch the default PL/SQL Code of Version 1.XX and used the default Settings then the Upgrade Process should be straight forward (APEX Collection is the same). If you used prior Plugin Events, you have to change these ones to the Events of Dropzone 2.*
+***Upgrade Notes:***
+
+- As the Plugin was rewritten from ground up, Version 2.0.0 is completely incompatible with prior Versions! It is recommended that you install Version 2.0.0 beside Version 1.XX and replace all Dropzone Regions in your App.
+- If you didn´t touch the default PL/SQL Code of Version 1.XX and used the default Settings then the Upgrade Process should be straight forward (APEX Collection is the same).
+- If you used Plugin Events in Version 1.XX, you have to change these to the Plugin Events of Dropzone 2.*
+- If you customized the PL/SQL Code of Version 1.XX to insert additional information, please see (Inserting uploaded files into your own tables)[#inserting-uploaded-files-into-your-own-tables] for information on conveting to the Plugin's default upload method to an APEX Collection, with a PL/SQL dynamic action to perform your custom insert.  
 
 ---
 
@@ -87,7 +90,8 @@ The plugin settings are highly customizable and you can change:
 
 - **Collection / Table Name**
 
-  - Name of the APEX Collection or of your Custom Table. Default APEX Collection: **DROPZONE_UPLOAD**
+  - Name of the APEX Collection or of your Custom Table. Default APEX Collection: **DROPZONE_UPLOAD**. 
+  - *Note: "Custom Table" setting is limited to storing the filename, mime type, and upload date, in addition to the file content itself. To store additional information, please use **APEX Collection** and see the (Inserting uploaded files into your own tables)[#inserting-uploaded-files-into-your-own-tables] section below.*
 
 - **Filename Column**
 
@@ -285,6 +289,52 @@ SELECT c001    AS filename,
   FROM apex_collections
  WHERE collection_name = 'DROPZONE_UPLOAD';
  ```
+
+#### Inserting uploaded files into your own tables
+
+Although the plugin settings allow you to upload the files directly into your custom table, the default setting of **APEX Collection** is preferred, as this method provides the flexibility to do custom processing prior to inserting the data into the custom table. 
+A typical use case for this is referencing foreign keys. This is easily accomplished using Dynamic Action with PL/SQL code, as follows, assuming the foreign key ID is stored in page item `P1_FK_ID`:
+
+- Event: Dropzone Upload completed
+- Selection: *your dropzone region*
+- PL/SQL Code:
+
+```plsql
+DECLARE
+  -- get files data from saved apex_collection
+  CURSOR l_cur_files IS
+    SELECT c001    AS filename,
+           c002    AS mime_type,
+           d001    AS date_created,
+           n001    AS file_id,
+           blob001 AS file_content
+      FROM apex_collections
+     WHERE collection_name = 'DROPZONE_UPLOAD';
+BEGIN
+  -- loop over files cursor
+  FOR l_rec_files IN l_cur_files LOOP
+    -- do whatever processing is required prior to the insert into your own table
+    INSERT INTO custom_table (
+        filename,
+        mime_type,
+        upload_date,
+        file_content,
+        fk_id
+    ) VALUES (
+        l_rec_files.filename,
+        l_rec_files.mime_type,
+        l_rec_files.date_created,
+        l_rec_files.file_content,
+        :P1_FK_ID
+    );
+  END LOOP;
+  -- clear original apex collection (only if exist)
+  IF apex_collection.collection_exists(p_collection_name => 'DROPZONE_UPLOAD') THEN
+    apex_collection.delete_collection(p_collection_name => 'DROPZONE_UPLOAD');
+  END IF;
+END;
+```
+
 
 
 ## Hint for ORDS and Tomcat users

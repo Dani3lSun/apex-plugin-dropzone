@@ -32,7 +32,7 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 - As the Plugin was rewritten from ground up, Version 2.0.0 is completely incompatible with prior Versions! It is recommended that you install Version 2.0.0 beside Version 1.XX and replace all Dropzone Regions in your App.
 - If you didn´t touch the default PL/SQL Code of Version 1.XX and used the default Settings then the Upgrade Process should be straight forward (APEX Collection is the same).
 - If you used Plugin Events in Version 1.XX, you have to change these to the Plugin Events of Dropzone 2.*
-- If you customized the PL/SQL Code of Version 1.XX to insert additional information, please see (Inserting uploaded files into your own tables)[#inserting-uploaded-files-into-your-own-tables] for information on conveting to the Plugin's default upload method to an APEX Collection, with a PL/SQL dynamic action to perform your custom insert.  
+- If you customized the PL/SQL Code of Version 1.XX to insert additional information, please see [Inserting uploaded files into your own tables](#inserting-uploaded-files-into-your-own-tables) for information on conveting to the Plugin's default upload method to an APEX Collection, with a PL/SQL dynamic action to perform your custom insert.  
 
 ---
 
@@ -91,7 +91,7 @@ The plugin settings are highly customizable and you can change:
 - **Collection / Table Name**
 
   - Name of the APEX Collection or of your Custom Table. Default APEX Collection: **DROPZONE_UPLOAD**. 
-  - *Note: "Custom Table" setting is limited to storing the filename, mime type, and upload date, in addition to the file content itself. To store additional information, please use **APEX Collection** and see the (Inserting uploaded files into your own tables)[#inserting-uploaded-files-into-your-own-tables] section below.*
+  - *Note: "Custom Table" setting is limited to storing the filename, mime type, and upload date, in addition to the file content itself. To store additional information, please use **APEX Collection** and see the [Inserting uploaded files into your own tables](#inserting-uploaded-files-into-your-own-tables) section below.*
 
 - **Filename Column**
 

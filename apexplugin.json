@@ -1,6 +1,6 @@
 {
     "name": "Dropzone",
-    "version": "2.0.4",
+    "version": "2.1.0",
     "description": "Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads.",
     "keywords": ["dropzone", "drag", "drop", "file", "upload", "multi", "multiple"],
     "homepage": "https://github.com/Dani3lSun/apex-plugin-dropzone",
@@ -21,7 +21,7 @@
         "url": "https://github.com/Dani3lSun/apex-plugin-dropzone.git"
     },
     "oracle": {
-        "versions": ["11.2.0.1", "12.1.0.1"],
+        "versions": ["11.2.0.1", "12.1.0.1", "12.2.0.1"],
         "apex": {
             "versions": ["5.0.0", "5.1.0"],
             "plugin": {

@@ -7,6 +7,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 2.1.0 - Added client side image resizing (before sending to server) / Added configurable chunk size of chunked file uploads
+
 #### 2.0.4 - Added much more detailed Total Upload Progress
 
 #### 2.0.3 - New Style *Grey Dashed Border/Background* / Improved deleting Files (No longer via Filename, instead the APEX Collection Seq-ID or PK Value of Custom Table is used)
@@ -90,7 +92,7 @@ The plugin settings are highly customizable and you can change:
 
 - **Collection / Table Name**
 
-  - Name of the APEX Collection or of your Custom Table. Default APEX Collection: **DROPZONE_UPLOAD**. 
+  - Name of the APEX Collection or of your Custom Table. Default APEX Collection: **DROPZONE_UPLOAD**.
   - *Note: "Custom Table" setting is limited to storing the filename, mime type, and upload date, in addition to the file content itself. To store additional information, please use **APEX Collection** and see the [Inserting uploaded files into your own tables](#inserting-uploaded-files-into-your-own-tables) section below.*
 
 - **Filename Column**
@@ -123,7 +125,7 @@ The plugin settings are highly customizable and you can change:
   - **Chunked**
     - **AJAX:** Async Method
 
-    - This Upload Method splits a File into 1MB Pieces. Then this 1MB Chunks are base64 encoded and sent via **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS, Oracle WebTier or Oracle Database EPG! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**  or want to Upload **large Files (> 50MB)**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. But if you expect a lot of big files that get uploaded this Method should be fine for that!
+    - This Upload Method splits a File into 1MB Pieces *(Default / Please Change Component Setting "Chunk Size (in KB))")*. Then this 1MB Chunks are base64 encoded and sent via **Multiple Requests** (For every MB 1 Request) to the Server. This Method works best on modern Web Servers like ORDS, Tomcat or Apache, but not on Oracle OHS, Oracle WebTier or Oracle Database EPG! This Method is good, when you don´t have the possibility to configure Parameters of the Web Server like **maxPostSize**  or want to Upload **large Files (> 50MB)**. If you can edit the Web Servers Config you should go with the *Normal* Mechanism. But if you expect a lot of big files that get uploaded this Method should be fine for that!
 
 - **Delete Files**
 
@@ -173,9 +175,25 @@ The plugin settings are highly customizable and you can change:
 
   - Adds support for Copy & Paste of Images in modern Browsers (like Chrome or Firefox > 50).
 
+- **Image Resizing**
+
+  - If true, images are resized to a specified size. This happens on client side before uploading the file to server. Saving upload bandwidth and reducing upload time. Please set at least one resize attribute, e.g. Resize Width or Resize Height.
+
+- **Resize Width**
+
+  - If set, images will be resized to these dimensions before being uploaded. If only one, resize Width or resize Height is provided, the original aspect ratio of the file will be preserved. Please provide a width in pixels.
+
+- **Resize Height**
+
+  - If set, images will be resized to these dimensions before being uploaded. If only one, resize Width or resize Height is provided, the original aspect ratio of the file will be preserved. Please provide a height in pixels.
+
 - **Remove Files after Upload**
 
   - If true, clears all Files from Dropzone Region after uploading has finished.
+
+- **Chunk Size (in KB) (Application Scope)**
+
+  - This is the default chunk size if you choose the Chunked upload mechanism. The file is split into pieces of that size. Each piece is sent to the server separately. Thus the files are base64 encoded, there is a little overhead in the file size, so please consider a plus of about 10-15% in file size. Default is 1MB = 1048576 KB.
 
 - **Display Message (Application Scope)**
 
@@ -292,7 +310,7 @@ SELECT c001    AS filename,
 
 #### Inserting uploaded files into your own tables
 
-Although the plugin settings allow you to upload the files directly into your custom table, the default setting of **APEX Collection** is preferred, as this method provides the flexibility to do custom processing prior to inserting the data into the custom table. 
+Although the plugin settings allow you to upload the files directly into your custom table, the default setting of **APEX Collection** is preferred, as this method provides the flexibility to do custom processing prior to inserting the data into the custom table.
 A typical use case for this is referencing foreign keys. This is easily accomplished using Dynamic Action with PL/SQL code, as follows, assuming the foreign key ID is stored in page item `P1_FK_ID`:
 
 - Event: Dropzone Upload completed

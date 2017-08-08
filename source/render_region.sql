@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone APEX Plugin
- * Version: 2.0.4 (25.05.2017)
+ * Version: 2.1.0 (08.08.2017)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -25,6 +25,9 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_copy_paste_support    p_region.attribute_18%TYPE := p_region.attribute_18;
   l_remove_uploaded_files p_region.attribute_19%TYPE := p_region.attribute_19;
   l_delete_files          p_region.attribute_20%TYPE := p_region.attribute_20;
+  l_resize_images         p_region.attribute_22%TYPE := p_region.attribute_22;
+  l_resize_width          p_region.attribute_23%TYPE := p_region.attribute_23;
+  l_resize_height         p_region.attribute_24%TYPE := p_region.attribute_24;
   -- plugin attributes
   l_display_message            p_plugin.attribute_01%TYPE := p_plugin.attribute_01;
   l_fallback_message           p_plugin.attribute_02%TYPE := p_plugin.attribute_02;
@@ -34,6 +37,7 @@ FUNCTION render_dropzone(p_region              IN apex_plugin.t_region,
   l_cancel_upload_message      p_plugin.attribute_06%TYPE := p_plugin.attribute_06;
   l_cancel_upl_confirm_message p_plugin.attribute_07%TYPE := p_plugin.attribute_07;
   l_invalid_filetype_message   p_plugin.attribute_08%TYPE := p_plugin.attribute_08;
+  l_chunk_size                 p_plugin.attribute_09%TYPE := p_plugin.attribute_09;
   -- other variables
   l_region_id VARCHAR2(200);
   l_dz_class  VARCHAR2(50);
@@ -51,10 +55,12 @@ BEGIN
     l_filereader_js := 'filereader.min';
   END IF;
   -- set variables and defaults
-  l_region_id := apex_escape.html_attribute(p_region.static_id ||
-                                            '_dropzone');
-  l_max_files := nvl(l_max_files,
-                     256);
+  l_region_id  := apex_escape.html_attribute(p_region.static_id ||
+                                             '_dropzone');
+  l_max_files  := nvl(l_max_files,
+                      256);
+  l_chunk_size := nvl(l_chunk_size,
+                      1048576);
   IF l_parallel_uploads > 2 THEN
     l_parallel_uploads := 2;
   ELSIF l_parallel_uploads = 0 THEN
@@ -127,8 +133,16 @@ BEGIN
                                                                           l_remove_uploaded_files) ||
                                             apex_javascript.add_attribute('deleteFiles',
                                                                           l_delete_files) ||
+                                            apex_javascript.add_attribute('resizeImages',
+                                                                          l_resize_images) ||
+                                            apex_javascript.add_attribute('resizeWidth',
+                                                                          l_resize_width) ||
+                                            apex_javascript.add_attribute('resizeHeight',
+                                                                          l_resize_height) ||
                                             apex_javascript.add_attribute('pluginPrefix',
                                                                           p_plugin.file_prefix) ||
+                                            apex_javascript.add_attribute('chunkSize',
+                                                                          l_chunk_size) ||
                                             apex_javascript.add_attribute('displayMessage',
                                                                           l_display_message) ||
                                             apex_javascript.add_attribute('fallbackMessage',

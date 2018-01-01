@@ -11,6 +11,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 2.2.0 - Updated Dropzone framework to 5.3.0 / enable dynamic substitution strings for table or collection name / removed parallel uploads option / changed client side waiting to server side waiting after file gets uploaded, removed waiting attribute, general improvements of js and pl/sql code
+
 #### 2.1.0 - Added client side image resizing (before sending to server) / Added configurable chunk size of chunked file uploads
 
 #### 2.0.4 - Added much more detailed Total Upload Progress
@@ -155,17 +157,11 @@ The plugin settings are highly customizable and you can change:
 
   - Maximum number of allowed files that can be uploaded at once.
 
-- **Parallel Uploads**
-
-  - Number of parallel Upload Streams to the server. Choose a value between 1 and 2. **1 works most reliable!**
 
 - **Accepted File Types**
 
   - If you only want that users can upload Files of declared types. Valid values: comma separated list of Mime-Types (with Wildcard support) or File endings: image/\*,application/pdf,.psd
 
-- **Wait Time (ms)**
-
-  - Wait time between several uploaded files in milliseconds.
 
 - **Clickable**
 

@@ -11,7 +11,7 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
-#### 2.2.0 - Updated Dropzone framework to 5.3.0 / enable dynamic substitution strings for table or collection name / removed parallel uploads option / changed client side waiting to server side waiting after file gets uploaded, removed waiting attribute, general improvements of js and pl/sql code
+#### 2.2.0 - APEX 5.2 compatibility / Updated Dropzone framework to 5.3.0 / enable dynamic substitution strings for table or collection name / removed parallel uploads option / changed client side waiting to server side waiting after file gets uploaded, removed waiting attribute, general improvements of js and pl/sql code
 
 #### 2.1.0 - Added client side image resizing (before sending to server) / Added configurable chunk size of chunked file uploads
 

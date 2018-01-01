@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone APEX Plugin
- * Version: 2.2.0 (28.12.2017)
+ * Version: 2.2.1 (01.01.2018)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -212,6 +212,20 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
           apex_escape.json(p_message) || '", "code": "", "id": "' ||
           apex_escape.json(p_id) || '" }');
   END write_htp_success;
+  --
+  -- Sleep/Pause for given seconds
+  PROCEDURE sleep(p_seconds IN NUMBER) AS
+    l_now      TIMESTAMP := systimestamp;
+    l_end_time TIMESTAMP;
+
+  BEGIN
+    l_end_time := l_now + numtodsinterval(p_seconds,
+                                          'second');
+
+    WHILE (l_end_time > l_now) LOOP
+      l_now := systimestamp;
+    END LOOP;
+  END sleep;
   --
   -- Chunked File Processing
   FUNCTION process_chunked_file(p_table_coll_name     IN VARCHAR2,
@@ -448,14 +462,15 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
         END;
         --
       END IF;
-      --
-      apex_util.pause(p_seconds => 1);
+      -- sleep 0.75 sec
+      sleep(p_seconds => 75 / 100);
       --
     END IF;
     --
   EXCEPTION
     WHEN OTHERS THEN
-      apex_util.pause(p_seconds => 1);
+      -- sleep 0.75 sec
+      sleep(p_seconds => 75 / 100);
       RAISE;
   END save_file;
   --

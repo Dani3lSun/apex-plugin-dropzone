@@ -1,7 +1,7 @@
 /*
 APEX Dropzone JS
 Author: Daniel Hochleitner
-Version: 2.2.2
+Version: 2.2.3
 */
 
 /**

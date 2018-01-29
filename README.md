@@ -11,6 +11,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 2.2.3 - Fixed displaying of special characters #39 / some server side code improvements
+
 #### 2.2.2 - Updated Dropzone framework to 5.3.0
 
 #### 2.2.1 - server side waiting: use custom procedure instead of APEX_UTIL.PAUSE (thus only full seconds are possible)

@@ -42,7 +42,7 @@ wwv_flow_api.create_plugin(
 ,p_plsql_code=>wwv_flow_utilities.join(wwv_flow_t_varchar2(
 '/*-------------------------------------',
 ' * Dropzone APEX Plugin',
-' * Version: 2.2.2 (24.01.2018)',
+' * Version: 2.2.3 (29.01.2018)',
 ' * Author:  Daniel Hochleitner',
 ' *-------------------------------------',
 '*/',
@@ -104,29 +104,21 @@ wwv_flow_api.create_plugin(
 '  -- escape input',
 '  l_width                      := apex_escape.html(l_width);',
 '  l_height                     := apex_escape.html(l_height);',
-'  l_display_message            := apex_escape.json(l_display_message);',
-'  l_fallback_message           := apex_escape.json(l_fallback_message);',
-'  l_filetoobig_message         := apex_escape.json(l_filetoobig_message);',
-'  l_maxfiles_message           := apex_escape.json(l_maxfiles_message);',
-'  l_remove_file_message        := apex_escape.json(l_remove_file_message);',
-'  l_cancel_upload_message      := apex_escape.json(l_cancel_upload_message);',
-'  l_cancel_upl_confirm_message := apex_escape.json(l_cancel_upl_confirm_message);',
-'  l_invalid_filetype_message   := apex_escape.json(l_invalid_filetype_message);',
+'  l_display_message            := apex_escape.html(l_display_message);',
+'  l_fallback_message           := apex_escape.html(l_fallback_message);',
+'  l_filetoobig_message         := apex_escape.html(l_filetoobig_message);',
+'  l_maxfiles_message           := apex_escape.html(l_maxfiles_message);',
+'  l_remove_file_message        := apex_escape.html(l_remove_file_message);',
+'  l_cancel_upload_message      := apex_escape.html(l_cancel_upload_message);',
+'  l_cancel_upl_confirm_message := apex_escape.html(l_cancel_upl_confirm_message);',
+'  l_invalid_filetype_message   := apex_escape.html(l_invalid_filetype_message);',
 '  --',
 '  -- add div for dropzone',
 '  -- style 1 (grey border)',
-'  IF l_dz_style = ''STYLE1'' THEN',
-'    l_dz_class := ''dz-style1'';',
-'    -- style 2 (blue dashed border)',
-'  ELSIF l_dz_style = ''STYLE2'' THEN',
-'    l_dz_class := ''dz-style2'';',
-'    -- style 3 (red dashed border)',
-'  ELSIF l_dz_style = ''STYLE3'' THEN',
-'    l_dz_class := ''dz-style3'';',
-'    -- style 4 (grey background and grey dashed border)',
-'  ELSIF l_dz_style = ''STYLE4'' THEN',
-'    l_dz_class := ''dz-style4'';',
-'  END IF;',
+'  -- style 2 (blue dashed border)',
+'  -- style 3 (red dashed border)',
+'  -- style 4 (grey background and grey dashed border)',
+'  l_dz_class := ''dz-'' || lower(l_dz_style);',
 '  --',
 '  htp.p(''<div id="'' || l_region_id || ''" class="dropzone '' || l_dz_class ||',
 '        ''" style="width:'' || l_width || '';height:'' || l_height ||',
@@ -282,7 +274,6 @@ wwv_flow_api.create_plugin(
 '    l_chunk_blob        BLOB := empty_blob();',
 '    l_blob              BLOB := empty_blob();',
 '    l_chunk_length      NUMBER := 0;',
-'    l_blob_length       NUMBER := 0;',
 '    -- cursor for file chunks',
 '    CURSOR l_cur_chunk_files IS',
 '      SELECT apex_collections.blob001 AS chunk_blob,',
@@ -308,7 +299,7 @@ wwv_flow_api.create_plugin(
 '      -- convert base64 chunk to BLOB',
 '      l_chunk_blob := apex_web_service.clobbase642blob(p_clob => p_chunk_clob);',
 '      --',
-'      IF (p_total_chunk_count) > 1 THEN',
+'      IF p_total_chunk_count > 1 THEN',
 '        --',
 '        apex_collection.add_member(p_collection_name => l_chunked_temp_coll,',
 '                                   p_c001            => p_filename, -- filename',
@@ -321,10 +312,9 @@ wwv_flow_api.create_plugin(
 '        l_blob := l_chunk_blob;',
 '      END IF;',
 '    END IF;',
-'    -- last file chunk peace (chunk count > 1 --> BLOB null)',
-'    l_blob_length := nvl(dbms_lob.getlength(l_blob),',
-'                         0);',
-'    IF p_current_chunk_count = p_total_chunk_count AND l_blob_length = 0 THEN',
+'    -- last file chunk peace + chunk count > 1',
+'    IF p_current_chunk_count = p_total_chunk_count AND',
+'       p_total_chunk_count > 1 THEN',
 '      --',
 '      dbms_lob.createtemporary(l_blob,',
 '                               FALSE,',
@@ -716,9 +706,9 @@ wwv_flow_api.create_plugin(
 ,p_substitute_attributes=>true
 ,p_subscribe_plugin_settings=>true
 ,p_help_text=>'Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads. It is based on JS Framework dropzone.js.'
-,p_version_identifier=>'2.2.2'
+,p_version_identifier=>'2.2.3'
 ,p_about_url=>'https://github.com/Dani3lSun/apex-plugin-dropzone'
-,p_files_version=>1363
+,p_files_version=>1371
 );
 end;
 /
@@ -1497,7 +1487,7 @@ end;
 /
 begin
 wwv_flow_api.g_varchar2_table := wwv_flow_api.empty_varchar2_table;
-wwv_flow_api.g_varchar2_table(1) := '2F2A0A415045582044726F707A6F6E65204353530A417574686F723A2044616E69656C20486F63686C6569746E65720A56657273696F6E3A20322E322E310A2A2F0A0A2E647A2D6D657373616765207B0A20202020666F6E742D73697A653A20312E3465';
+wwv_flow_api.g_varchar2_table(1) := '2F2A0A415045582044726F707A6F6E65204353530A417574686F723A2044616E69656C20486F63686C6569746E65720A56657273696F6E3A20322E322E330A2A2F0A0A2E647A2D6D657373616765207B0A20202020666F6E742D73697A653A20312E3465';
 wwv_flow_api.g_varchar2_table(2) := '6D3B0A20202020666F6E742D7765696768743A203430303B0A7D0A0A2E64726F707A6F6E65202E647A2D707265766965772E647A2D696D6167652D70726576696577207B0A202020206261636B67726F756E643A206E6F6E653B0A7D0A0A2E647A2D7374';
 wwv_flow_api.g_varchar2_table(3) := '796C6531207B0A20202020626F726465723A2035707820736F6C696420677265793B0A202020206261636B67726F756E643A2077686974653B0A202020206F766572666C6F773A206175746F3B0A7D0A0A2E647A2D7374796C6532207B0A20202020626F';
 wwv_flow_api.g_varchar2_table(4) := '726465723A203370782064617368656420233030383746373B0A20202020626F726465722D7261646975733A203570783B0A202020206261636B67726F756E643A2077686974653B0A202020206F766572666C6F773A206175746F3B0A7D0A0A2E647A2D';
@@ -6294,7 +6284,7 @@ end;
 /
 begin
 wwv_flow_api.g_varchar2_table := wwv_flow_api.empty_varchar2_table;
-wwv_flow_api.g_varchar2_table(1) := '2F2A0A415045582044726F707A6F6E65204A530A417574686F723A2044616E69656C20486F63686C6569746E65720A56657273696F6E3A20322E322E320A2A2F0A0A2F2A2A0A202A20676C6F62616C206E616D6573706163650A202A2F0A766172206170';
+wwv_flow_api.g_varchar2_table(1) := '2F2A0A415045582044726F707A6F6E65204A530A417574686F723A2044616E69656C20486F63686C6569746E65720A56657273696F6E3A20322E322E330A2A2F0A0A2F2A2A0A202A20676C6F62616C206E616D6573706163650A202A2F0A766172206170';
 wwv_flow_api.g_varchar2_table(2) := '657844726F707A6F6E65203D207B0A20202F2A2A0A2020202A20706172736520737472696E6720746F20626F6F6C65616E0A2020202A2040706172616D207B737472696E677D2070537472696E670A2020202A204072657475726E207B626F6F6C65616E';
 wwv_flow_api.g_varchar2_table(3) := '7D0A2020202A2F0A20207061727365426F6F6C65616E3A2066756E6374696F6E2870537472696E6729207B0A2020202076617220626F6F6C65616E3B0A202020206966202870537472696E672E746F4C6F776572436173652829203D3D20277472756527';
 wwv_flow_api.g_varchar2_table(4) := '29207B0A202020202020626F6F6C65616E203D20747275653B0A202020207D0A202020206966202870537472696E672E746F4C6F776572436173652829203D3D202766616C73652729207B0A202020202020626F6F6C65616E203D2066616C73653B0A20';

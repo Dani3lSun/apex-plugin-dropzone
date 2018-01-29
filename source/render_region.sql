@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone APEX Plugin
- * Version: 2.2.2 (24.01.2018)
+ * Version: 2.2.3 (29.01.2018)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -62,29 +62,21 @@ BEGIN
   -- escape input
   l_width                      := apex_escape.html(l_width);
   l_height                     := apex_escape.html(l_height);
-  l_display_message            := apex_escape.json(l_display_message);
-  l_fallback_message           := apex_escape.json(l_fallback_message);
-  l_filetoobig_message         := apex_escape.json(l_filetoobig_message);
-  l_maxfiles_message           := apex_escape.json(l_maxfiles_message);
-  l_remove_file_message        := apex_escape.json(l_remove_file_message);
-  l_cancel_upload_message      := apex_escape.json(l_cancel_upload_message);
-  l_cancel_upl_confirm_message := apex_escape.json(l_cancel_upl_confirm_message);
-  l_invalid_filetype_message   := apex_escape.json(l_invalid_filetype_message);
+  l_display_message            := apex_escape.html(l_display_message);
+  l_fallback_message           := apex_escape.html(l_fallback_message);
+  l_filetoobig_message         := apex_escape.html(l_filetoobig_message);
+  l_maxfiles_message           := apex_escape.html(l_maxfiles_message);
+  l_remove_file_message        := apex_escape.html(l_remove_file_message);
+  l_cancel_upload_message      := apex_escape.html(l_cancel_upload_message);
+  l_cancel_upl_confirm_message := apex_escape.html(l_cancel_upl_confirm_message);
+  l_invalid_filetype_message   := apex_escape.html(l_invalid_filetype_message);
   --
   -- add div for dropzone
   -- style 1 (grey border)
-  IF l_dz_style = 'STYLE1' THEN
-    l_dz_class := 'dz-style1';
-    -- style 2 (blue dashed border)
-  ELSIF l_dz_style = 'STYLE2' THEN
-    l_dz_class := 'dz-style2';
-    -- style 3 (red dashed border)
-  ELSIF l_dz_style = 'STYLE3' THEN
-    l_dz_class := 'dz-style3';
-    -- style 4 (grey background and grey dashed border)
-  ELSIF l_dz_style = 'STYLE4' THEN
-    l_dz_class := 'dz-style4';
-  END IF;
+  -- style 2 (blue dashed border)
+  -- style 3 (red dashed border)
+  -- style 4 (grey background and grey dashed border)
+  l_dz_class := 'dz-' || lower(l_dz_style);
   --
   htp.p('<div id="' || l_region_id || '" class="dropzone ' || l_dz_class ||
         '" style="width:' || l_width || ';height:' || l_height ||
@@ -240,7 +232,6 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
     l_chunk_blob        BLOB := empty_blob();
     l_blob              BLOB := empty_blob();
     l_chunk_length      NUMBER := 0;
-    l_blob_length       NUMBER := 0;
     -- cursor for file chunks
     CURSOR l_cur_chunk_files IS
       SELECT apex_collections.blob001 AS chunk_blob,
@@ -266,7 +257,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
       -- convert base64 chunk to BLOB
       l_chunk_blob := apex_web_service.clobbase642blob(p_clob => p_chunk_clob);
       --
-      IF (p_total_chunk_count) > 1 THEN
+      IF p_total_chunk_count > 1 THEN
         --
         apex_collection.add_member(p_collection_name => l_chunked_temp_coll,
                                    p_c001            => p_filename, -- filename
@@ -279,10 +270,9 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
         l_blob := l_chunk_blob;
       END IF;
     END IF;
-    -- last file chunk peace (chunk count > 1 --> BLOB null)
-    l_blob_length := nvl(dbms_lob.getlength(l_blob),
-                         0);
-    IF p_current_chunk_count = p_total_chunk_count AND l_blob_length = 0 THEN
+    -- last file chunk peace + chunk count > 1
+    IF p_current_chunk_count = p_total_chunk_count AND
+       p_total_chunk_count > 1 THEN
       --
       dbms_lob.createtemporary(l_blob,
                                FALSE,

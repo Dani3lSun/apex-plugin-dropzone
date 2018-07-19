@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone APEX Plugin
- * Version: 2.2.4 (09.07.2018)
+ * Version: 2.3.0 (19.07.2018)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -176,7 +176,6 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   l_delete_id           NUMBER;
   l_current_chunk_count NUMBER;
   l_total_chunk_count   NUMBER;
-  l_chunk_clob          CLOB := empty_clob();
   --
   -- Helper Functions
   --
@@ -209,7 +208,6 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   PROCEDURE sleep(p_seconds IN NUMBER) AS
     l_now      TIMESTAMP := systimestamp;
     l_end_time TIMESTAMP;
-
   BEGIN
     l_end_time := l_now + numtodsinterval(p_seconds,
                                           'second');
@@ -219,13 +217,35 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
     END LOOP;
   END sleep;
   --
+  -- base64 array (f01 30k) to blob
+  FUNCTION base64array_to_blob(p_f01_array IN apex_application.g_f01%TYPE)
+    RETURN BLOB IS
+    l_token VARCHAR2(32000);
+    l_blob  BLOB := empty_blob();
+  BEGIN
+    -- build BLOB from f01 30k Array (base64 encoded)
+    dbms_lob.createtemporary(l_blob,
+                             FALSE,
+                             dbms_lob.session);
+    FOR i IN 1 .. p_f01_array.count LOOP
+      l_token := p_f01_array(i);
+      IF length(l_token) > 0 THEN
+        dbms_lob.append(l_blob,
+                        to_blob(utl_encode.base64_decode(utl_raw.cast_to_raw(l_token))));
+      END IF;
+    END LOOP;
+    --
+    RETURN l_blob;
+    --
+  END;
+  --
   -- Chunked File Processing
   FUNCTION process_chunked_file(p_table_coll_name     IN VARCHAR2,
                                 p_filename            IN VARCHAR2,
                                 p_mime_type           IN VARCHAR2,
                                 p_current_chunk_count IN NUMBER,
                                 p_total_chunk_count   IN NUMBER,
-                                p_chunk_clob          IN OUT NOCOPY CLOB)
+                                p_chunk_f01_array     IN apex_application.g_f01%TYPE)
     RETURN BLOB IS
     --
     l_chunked_temp_coll VARCHAR2(100);
@@ -249,26 +269,21 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
         apex_collection.collection_exists(p_collection_name => l_chunked_temp_coll) THEN
       apex_collection.create_collection(p_collection_name => l_chunked_temp_coll);
     END IF;
-    -- add collection member (only if p_chunk_clob not null and chunk count > 1)
-    l_chunk_length := nvl(dbms_lob.getlength(p_chunk_clob),
-                          0);
+    -- build BLOB from f01 30k Array (base64 encoded chunk)
+    l_chunk_blob   := base64array_to_blob(p_f01_array => p_chunk_f01_array);
+    l_chunk_length := dbms_lob.getlength(l_chunk_blob);
     --
-    IF l_chunk_length > 0 THEN
-      -- convert base64 chunk to BLOB
-      l_chunk_blob := apex_web_service.clobbase642blob(p_clob => p_chunk_clob);
+    IF p_total_chunk_count > 1 THEN
       --
-      IF p_total_chunk_count > 1 THEN
-        --
-        apex_collection.add_member(p_collection_name => l_chunked_temp_coll,
-                                   p_c001            => p_filename, -- filename
-                                   p_c002            => p_mime_type, -- mime_type
-                                   p_n001            => p_current_chunk_count, -- current count from JS loop
-                                   p_n002            => p_total_chunk_count, -- total count of all chunks
-                                   p_n003            => l_chunk_length, -- size of base64 BLOB file chunk
-                                   p_blob001         => l_chunk_blob); -- BLOB base64 file chunk content
-      ELSE
-        l_blob := l_chunk_blob;
-      END IF;
+      apex_collection.add_member(p_collection_name => l_chunked_temp_coll,
+                                 p_c001            => p_filename, -- filename
+                                 p_c002            => p_mime_type, -- mime_type
+                                 p_n001            => p_current_chunk_count, -- current count from JS loop
+                                 p_n002            => p_total_chunk_count, -- total count of all chunks
+                                 p_n003            => l_chunk_length, -- size of base64 BLOB file chunk
+                                 p_blob001         => l_chunk_blob); -- BLOB base64 file chunk content
+    ELSE
+      l_blob := l_chunk_blob;
     END IF;
     -- last file chunk peace + chunk count > 1
     IF p_current_chunk_count = p_total_chunk_count AND
@@ -325,16 +340,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
     --
   BEGIN
     -- build BLOB from f01 30k Array (base64 encoded)
-    dbms_lob.createtemporary(l_blob,
-                             FALSE,
-                             dbms_lob.session);
-    FOR i IN 1 .. p_f01_array.count LOOP
-      l_token := p_f01_array(i);
-      IF length(l_token) > 0 THEN
-        dbms_lob.append(l_blob,
-                        to_blob(utl_encode.base64_decode(utl_raw.cast_to_raw(l_token))));
-      END IF;
-    END LOOP;
+    l_blob := base64array_to_blob(p_f01_array => p_f01_array);
     --
     RETURN l_blob;
     --
@@ -559,8 +565,6 @@ BEGIN
                   apex_application.g_x04);
   apex_debug.info('Dropzone AJAX Parameter x05: ' ||
                   apex_application.g_x05);
-  apex_debug.info('Dropzone AJAX Parameter p_clob_01(length): ' ||
-                  dbms_lob.getlength(apex_application.g_clob_01));
   --
   -- replace substitution strings
   l_table_coll_name := apex_plugin_util.replace_substitutions(p_value => l_table_coll_name);
@@ -589,14 +593,13 @@ BEGIN
         -- get defaults from AJAX Process
         l_current_chunk_count := to_number(apex_application.g_x04);
         l_total_chunk_count   := to_number(apex_application.g_x05);
-        l_chunk_clob          := apex_application.g_clob_01;
         --
         l_blob := process_chunked_file(p_table_coll_name     => l_table_coll_name,
                                        p_filename            => l_filename,
                                        p_mime_type           => l_mime_type,
                                        p_current_chunk_count => l_current_chunk_count,
                                        p_total_chunk_count   => l_total_chunk_count,
-                                       p_chunk_clob          => l_chunk_clob);
+                                       p_chunk_f01_array     => apex_application.g_f01);
       EXCEPTION
         WHEN OTHERS THEN
           RETURN NULL;

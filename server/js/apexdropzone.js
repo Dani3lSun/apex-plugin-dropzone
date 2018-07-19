@@ -1,7 +1,7 @@
 /*
 APEX Dropzone JS
 Author: Daniel Hochleitner
-Version: 2.2.4
+Version: 2.3.0
 */
 
 /**
@@ -372,6 +372,9 @@ var apexDropzone = {
                 reader.onload = (function(fileChunk) {
                   return function(eChunk) {
                     fileChunkBase64 = apexDropzone.binaryArray2base64(eChunk.target.result);
+                    // split base64 clob string to f01 array length 30k
+                    var f01Array = [];
+                    f01Array = apexDropzone.clob2Array(fileChunkBase64, 30000, f01Array);
 
                     // AJAX call to upload and process files (No apex.server.plugin because 5.1 doesn´t support xhr)
                     file.xhr = apex.jQuery.ajax({
@@ -386,7 +389,7 @@ var apexDropzone = {
                         x03: file.type,
                         x04: currentChunk,
                         x05: fileChunkCount,
-                        p_clob_01: fileChunkBase64,
+                        f01: f01Array,
                         p_request: 'PLUGIN=' + pAjaxIdentifier,
                         p_flow_id: $v('pFlowId'),
                         p_flow_step_id: $v('pFlowStepId'),
@@ -731,7 +734,9 @@ var apexDropzone = {
     if (deleteFiles) {
       myDropzone.on("removedfile", function(file) {
         // delete file
-        apexDropzone.deleteDzFile(pRegionId, ajaxIdentifier, myDropzone, file);
+        if (file.status == 'success') {
+          apexDropzone.deleteDzFile(pRegionId, ajaxIdentifier, myDropzone, file);
+        }
       });
     }
 

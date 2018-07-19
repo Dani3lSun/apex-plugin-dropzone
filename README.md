@@ -11,6 +11,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 2.3.0 - min. APEX version now is 5.1 ! / Changed chunked upload to also use base64 f01 array (double chunked mechanism) / delete AJAX call only when file has no error
+
 #### 2.2.4 - Updated Dropzone framework to 5.5.0
 
 #### 2.2.3 - Fixed displaying of special characters #39 / some server side code improvements

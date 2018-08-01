@@ -1,7 +1,7 @@
 /*
 APEX Dropzone JS
 Author: Daniel Hochleitner
-Version: 2.4.0
+Version: 2.4.1
 */
 
 /**
@@ -250,7 +250,7 @@ var apexDropzone = {
                     file.xhr = apex.jQuery.ajax({
                       dataType: 'text',
                       type: 'POST',
-                      url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
+                      url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.ajax',
                       async: true,
                       traditional: true,
                       data: {
@@ -407,7 +407,7 @@ var apexDropzone = {
           file.xhr = apex.jQuery.ajax({
             dataType: 'text',
             type: 'POST',
-            url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
+            url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.ajax',
             async: true,
             processData: false,
             contentType: false,
@@ -511,7 +511,7 @@ var apexDropzone = {
     apex.jQuery.ajax({
       dataType: 'text',
       type: 'POST',
-      url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
+      url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.ajax',
       async: true,
       traditional: true,
       data: {
@@ -672,7 +672,7 @@ var apexDropzone = {
     // DROPZONE Options
     var dzOptions = {
       // NOT USED: required params, but uploading function uses plugin process
-      url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
+      url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.ajax',
       // dropzone parameters
       uploadMultiple: false,
       autoProcessQueue: true,

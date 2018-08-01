@@ -1,6 +1,6 @@
 /*-------------------------------------
  * Dropzone APEX Plugin
- * Version: 2.3.0 (19.07.2018)
+ * Version: 2.4.0 (01.08.2018)
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -183,8 +183,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   --
   -- Write Error JSON
   PROCEDURE write_htp_error(p_message IN VARCHAR2,
-                            p_id      IN VARCHAR2 := NULL,
-                            p_output  IN BOOLEAN := FALSE) IS
+                            p_id      IN VARCHAR2 := NULL) IS
   BEGIN
     htp.init;
     htp.p('{ "status": "error", "message": "' ||
@@ -195,8 +194,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
   --
   -- Write Success JSON
   PROCEDURE write_htp_success(p_message IN VARCHAR2,
-                              p_id      IN VARCHAR2 := NULL,
-                              p_output  IN BOOLEAN := FALSE) IS
+                              p_id      IN VARCHAR2 := NULL) IS
   BEGIN
     htp.init;
     htp.p('{ "status": "success", "message": "' ||
@@ -330,20 +328,24 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
       RAISE;
   END process_chunked_file;
   --
-  -- Normal File Processing
-  FUNCTION process_normal_file(p_filename  IN VARCHAR2,
-                               p_f01_array IN apex_application.g_f01%TYPE)
-    RETURN BLOB IS
-    --
-    l_token VARCHAR2(32000);
-    l_blob  BLOB := empty_blob();
-    --
+  -- FormData File Processing
+  FUNCTION process_normal_file(p_filename       IN VARCHAR2,
+                               p_apex_file_name IN VARCHAR2) RETURN BLOB IS
+    l_blob BLOB := empty_blob();
+    CURSOR l_cur_file IS
+      SELECT aaf.blob_content
+        FROM apex_application_files aaf
+       WHERE aaf.name = p_apex_file_name;
   BEGIN
-    -- build BLOB from f01 30k Array (base64 encoded)
-    l_blob := base64array_to_blob(p_f01_array => p_f01_array);
+    OPEN l_cur_file;
+    FETCH l_cur_file
+      INTO l_blob;
+    CLOSE l_cur_file;
+    --
+    DELETE FROM apex_application_files aaf
+     WHERE aaf.name = p_apex_file_name;
     --
     RETURN l_blob;
-    --
   EXCEPTION
     WHEN OTHERS THEN
       -- status return json
@@ -547,9 +549,7 @@ FUNCTION ajax_dropzone(p_region IN apex_plugin.t_region,
                           p_table_coll_name);
           RAISE;
       END;
-      --
     END IF;
-    --
   END delete_file;
   --
 BEGIN
@@ -605,11 +605,11 @@ BEGIN
           RETURN NULL;
       END;
       --
-      -- normal file upload via f01 array (1 server request)
+      -- formdata file upload
     ELSIF l_upload_mechanism = 'NORMAL' THEN
       BEGIN
-        l_blob := process_normal_file(p_filename  => l_filename,
-                                      p_f01_array => apex_application.g_f01);
+        l_blob := process_normal_file(p_filename       => l_filename,
+                                      p_apex_file_name => apex_application.g_f01(1));
       EXCEPTION
         WHEN OTHERS THEN
           RETURN NULL;
@@ -632,7 +632,6 @@ BEGIN
       WHEN OTHERS THEN
         RETURN NULL;
     END;
-    --
   END IF;
   --
   -- Delete File
@@ -660,5 +659,4 @@ EXCEPTION
     -- status return json
     write_htp_error('General Error occured in Dropzone AJAX Function');
     RETURN NULL;
-    --
 END ajax_dropzone;

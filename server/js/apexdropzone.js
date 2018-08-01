@@ -1,7 +1,7 @@
 /*
 APEX Dropzone JS
 Author: Daniel Hochleitner
-Version: 2.3.0
+Version: 2.4.0
 */
 
 /**
@@ -194,136 +194,6 @@ var apexDropzone = {
     }
   },
   /**
-   * file upload function
-   * @param {string} pRegionId
-   * @param {string} pAjaxIdentifier
-   * @param {object} pDropzone
-   * @param {array} pFiles
-   */
-  uploadDzFiles: function(pRegionId, pAjaxIdentifier, pDropzone, pFiles) {
-    // go through files
-    for (var i = 0; i < pFiles.length; i++) {
-      var file = pFiles[i];
-      // async resize image function --> only when attributes are set
-      apexDropzone.processFile(pDropzone, pFiles[i], function(processedFile) {
-        // resize image: save original file object / processedFile for fileReader
-        if (processedFile) {
-          var orgFile = file;
-          file = processedFile;
-        }
-        // Filereader => file to Binary to base64
-        var reader = new FileReader();
-        reader.onload = (function(pFile) {
-          return function(e) {
-            if (pFile) {
-              // resize image: restore original file object
-              if (processedFile) {
-                file = orgFile;
-              }
-              // BinaryInt8Array to base64
-              var base64 = apexDropzone.binaryArray2base64(e.target.result);
-              // split base64 clob string to f01 array length 30k
-              var f01Array = [];
-              f01Array = apexDropzone.clob2Array(base64, 30000, f01Array);
-              //set upload progress 10%
-              pDropzone.emit('uploadprogress', file, 10, file.size / 10);
-
-              // AJAX call to upload and process files (No apex.server.plugin because 5.1 doesn´t support xhr)
-              file.xhr = apex.jQuery.ajax({
-                dataType: 'text',
-                type: 'POST',
-                url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
-                async: true,
-                traditional: true,
-                data: {
-                  x01: 'UPLOAD',
-                  x02: file.name,
-                  x03: file.type,
-                  f01: f01Array,
-                  p_request: 'PLUGIN=' + pAjaxIdentifier,
-                  p_flow_id: $v('pFlowId'),
-                  p_flow_step_id: $v('pFlowStepId'),
-                  p_instance: $v('pInstance'),
-                  p_debug: $v('pdebug')
-                },
-                // SUCCESS function
-                success: function(pData) {
-                  // check status
-                  var vJsonReturn;
-                  try {
-                    vJsonReturn = jQuery.parseJSON(pData);
-                  } catch (err) {
-                    apex.debug.log('apexDropzone.uploadDzFiles Response ParseError', err);
-                    vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "uploadDzFiles Response ParseError", "code": "AJAX Callback (pData) ParseError" }');
-                  }
-                  // response error
-                  if (vJsonReturn.status == 'error') {
-                    // APEX event
-                    apex.debug.log('apexDropzone.uploadDzFiles Error', vJsonReturn.message, vJsonReturn.code);
-                    apex.event.trigger('#' + pRegionId, 'dropzone-upload-error', vJsonReturn);
-                    // file status
-                    file.status = Dropzone.ERROR;
-                    pDropzone.emit("error", file, "Database error during file upload");
-                    // response success
-                  } else if (vJsonReturn.status == 'success') {
-                    // set file id to return id
-                    file.id = vJsonReturn.id;
-                    // APEX event
-                    apex.debug.log('apexDropzone.uploadDzFiles Success', vJsonReturn.message);
-                    apex.event.trigger('#' + pRegionId, 'dropzone-upload-success', pData);
-                    // file status
-                    file.status = Dropzone.SUCCESS;
-                    pDropzone.emit("success", file, 'success', null);
-                  }
-                  // set file status SUCCESS / UPLOAD 100%
-                  pDropzone.emit('uploadprogress', file, 100, file.size);
-                  pDropzone.emit("complete", file);
-                  // process file queue
-                  pDropzone.processQueue();
-                },
-                // ERROR function
-                error: function(xhr, pMessage) {
-                  // APEX event
-                  apex.debug.log('apexDropzone.uploadDzFiles Error', pMessage);
-                  apex.event.trigger('#' + pRegionId, 'dropzone-upload-error', pMessage);
-                  // set file status ERROR
-                  file.status = Dropzone.ERROR;
-                  // build message for error template
-                  var message = "";
-                  if (pMessage) {
-                    message = pMessage;
-                  } else {
-                    message = 'Error processing file';
-                  }
-                  pDropzone.emit("error", file, message, xhr);
-                  pDropzone.emit("complete", file);
-                  // process file queue
-                  pDropzone.processQueue();
-                },
-                // XHR for upload progress
-                xhr: function() {
-                  XhrObj = $.ajaxSettings.xhr();
-                  if (XhrObj.upload) {
-                    XhrObj.upload.addEventListener('progress', function(event) {
-                      apexDropzone.setUploadProgress(event, pDropzone, file);
-                    }, false);
-                  } else {
-                    apex.debug.log('apexDropzone.uploadDzFiles XHR', 'Upload progress is not supported.');
-                  }
-                  return XhrObj;
-                }
-              });
-              // if file not found: process queue
-            } else {
-              pDropzone.processQueue();
-            }
-          };
-        })(file);
-        reader.readAsArrayBuffer(file);
-      });
-    }
-  },
-  /**
    * file upload function for chunked upload
    * @param {string} pRegionId
    * @param {string} pAjaxIdentifier
@@ -495,6 +365,137 @@ var apexDropzone = {
           };
         })(file);
         reader.readAsArrayBuffer(file);
+      });
+    }
+  },
+  /**
+   * file upload function using FormData AJAX
+   * @param {string} pRegionId
+   * @param {string} pAjaxIdentifier
+   * @param {object} pDropzone
+   * @param {array} pFiles
+   */
+  uploadDzFilesFormData: function(pRegionId, pAjaxIdentifier, pDropzone, pFiles) {
+    // go through files
+    for (var i = 0; i < pFiles.length; i++) {
+      var file = pFiles[i];
+      var orgFile;
+      // async resize image function --> only when attributes are set
+      apexDropzone.processFile(pDropzone, pFiles[i], function(processedFile) {
+        // resize image: save original file object / processedFile for fileReader
+        if (processedFile) {
+          orgFile = file;
+          file = processedFile;
+        }
+        if (file) {
+          // formData
+          var formData = new FormData();
+          formData.append('p_request', 'PLUGIN=' + pAjaxIdentifier);
+          formData.append('p_flow_id', $v('pFlowId'));
+          formData.append('p_flow_step_id', $v('pFlowStepId'));
+          formData.append('p_instance', $v('pInstance'));
+          formData.append('p_debug', $v('pdebug'));
+          formData.append('F01', file, file.name);
+          formData.append('X01', 'UPLOAD');
+          formData.append('X02', file.name);
+          formData.append('X03', file.type);
+
+          //set upload progress 10%
+          pDropzone.emit('uploadprogress', file, 10, file.size / 10);
+
+          // AJAX call to upload and process files (No apex.server.plugin because 5.1 doesn´t support xhr)
+          file.xhr = apex.jQuery.ajax({
+            dataType: 'text',
+            type: 'POST',
+            url: window.location.href.substr(0, window.location.href.indexOf('/f?p=') + 1) + 'wwv_flow.show',
+            async: true,
+            processData: false,
+            contentType: false,
+            traditional: true,
+            data: formData,
+            // SUCCESS function
+            success: function(pData) {
+              // resize image: restore original file object
+              if (processedFile) {
+                file = orgFile;
+              }
+              // check status
+              var vJsonReturn;
+              try {
+                vJsonReturn = jQuery.parseJSON(pData);
+              } catch (err) {
+                apex.debug.log('apexDropzone.uploadDzFiles Response ParseError', err);
+                vJsonReturn = jQuery.parseJSON('{ "status": "error", "message": "uploadDzFiles Response ParseError", "code": "AJAX Callback (pData) ParseError" }');
+              }
+              // response error
+              if (vJsonReturn.status == 'error') {
+                // APEX event
+                apex.debug.log('apexDropzone.uploadDzFiles Error', vJsonReturn.message, vJsonReturn.code);
+                apex.event.trigger('#' + pRegionId, 'dropzone-upload-error', vJsonReturn);
+                // file status
+                file.status = Dropzone.ERROR;
+                pDropzone.emit("error", file, "Database error during file upload");
+                // response success
+              } else if (vJsonReturn.status == 'success') {
+                // set file id to return id
+                file.id = vJsonReturn.id;
+                // APEX event
+                apex.debug.log('apexDropzone.uploadDzFiles Success', vJsonReturn.message);
+                apex.event.trigger('#' + pRegionId, 'dropzone-upload-success', pData);
+                // file status
+                file.status = Dropzone.SUCCESS;
+                pDropzone.emit("success", file, 'success', null);
+              }
+              // set file status SUCCESS / UPLOAD 100%
+              pDropzone.emit('uploadprogress', file, 100, file.size);
+              pDropzone.emit("complete", file);
+              // resize image: restore original file object
+              if (processedFile) {
+                file = processedFile;
+              }
+              // process file queue
+              pDropzone.processQueue();
+            },
+            // ERROR function
+            error: function(xhr, pMessage) {
+              // resize image: restore original file object
+              if (processedFile) {
+                file = orgFile;
+              }
+              // APEX event
+              apex.debug.log('apexDropzone.uploadDzFiles Error', pMessage);
+              apex.event.trigger('#' + pRegionId, 'dropzone-upload-error', pMessage);
+              // set file status ERROR
+              file.status = Dropzone.ERROR;
+              // build message for error template
+              var message = "";
+              if (pMessage) {
+                message = pMessage;
+              } else {
+                message = 'Error processing file';
+              }
+              pDropzone.emit("error", file, message, xhr);
+              pDropzone.emit("complete", file);
+              // process file queue
+              pDropzone.processQueue();
+            },
+            // XHR for upload progress
+            xhr: function() {
+              XhrObj = $.ajaxSettings.xhr();
+              if (XhrObj.upload) {
+                XhrObj.upload.addEventListener('progress', function(event) {
+                  apexDropzone.setUploadProgress(event, pDropzone, file);
+                }, false);
+              } else {
+                apex.debug.log('apexDropzone.uploadDzFiles XHR', 'Upload progress is not supported.');
+              }
+              return XhrObj;
+            }
+          });
+          // if file not found: process queue
+        } else {
+          pDropzone.processQueue();
+        }
       });
     }
   },
@@ -720,11 +721,10 @@ var apexDropzone = {
     // overwrite dropzone default upload function
     myDropzone.uploadFiles = function(files) {
       if (uploadMechanism == 'NORMAL') {
-        apexDropzone.uploadDzFiles(pRegionId, ajaxIdentifier, myDropzone, files);
+        apexDropzone.uploadDzFilesFormData(pRegionId, ajaxIdentifier, myDropzone, files);
       } else if (uploadMechanism == 'CHUNKED') {
         apexDropzone.uploadDzFilesChunked(pRegionId, ajaxIdentifier, myDropzone, files, chunkSize);
       }
-
     };
 
     // handle plugin events

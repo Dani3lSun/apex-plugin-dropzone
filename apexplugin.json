@@ -1,7 +1,7 @@
 {
     "name": "Dropzone",
     "version": "2.4.1",
-    "description": "Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads.",
+    "description": "<p>Dropzone is a region type plugin that allows you to provide nice looking drag’n’drop file uploads.</p><p><b>Short info about \"Commercially Supported\"</b></p><p>This plug-in remains free and open source under MIT license!</p><p>If you have any problems with it, you can always create an issue on GitHub and I may find the time at some point in the future to resolve it for you. The guys at FOEX also offer commercial support for this plug-in. They have added this plug-in as a part of their \"APEX Plug-in Support Package\", for more information please visit: https://www.foex.at/plugin-support. I have opted to include my plug-in in their support package because you can get professional support for any issues you face in a timely manner as well as the \"peace of mind\" that it will be supported for many years to come!</p>",
     "keywords": ["dropzone", "drag", "drop", "file", "upload", "multi", "multiple"],
     "homepage": "https://github.com/Dani3lSun/apex-plugin-dropzone",
     "bugs": {
@@ -9,6 +9,8 @@
         "email": "daniel@danielh.de"
     },
     "license": "MIT",
+    "commercial" : "No",
+    "commercially_supported": "Yes",
     "author": {
         "name": "Daniel Hochleitner",
         "email": "daniel@danielh.de",

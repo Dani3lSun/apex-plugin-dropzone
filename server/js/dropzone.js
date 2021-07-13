@@ -1980,10 +1980,10 @@ var Dropzone = function (_Emitter) {
             resizeMimeType = file.type;
           }
           var resizedDataURL = canvas.toDataURL(resizeMimeType, _this11.options.resizeQuality);
-          if (resizeMimeType === 'image/jpeg' || resizeMimeType === 'image/jpg') {
-            // Now add the original EXIF information
-            resizedDataURL = ExifRestore.restore(file.dataURL, resizedDataURL);
-          }
+          //if (resizeMimeType === 'image/jpeg' || resizeMimeType === 'image/jpg') {
+          //  // Now add the original EXIF information
+          //  resizedDataURL = ExifRestore.restore(file.dataURL, resizedDataURL);
+          //}
           return callback(Dropzone.dataURItoBlob(resizedDataURL));
         }
       });
